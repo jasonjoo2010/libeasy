@@ -8,7 +8,11 @@
 
 
 #include "easy_mem_page.h"
+#if defined(__APPLE__)
+#include <sys/malloc.h>
+#else
 #include <malloc.h>
+#endif
 
 static easy_mem_page_t *easy_mem_rmqueue(easy_mem_zone_t *zone, uint32_t order);
 static void easy_mem_expand(easy_mem_zone_t *zone, easy_mem_page_t *page,
@@ -47,7 +51,7 @@ easy_mem_zone_t *easy_mem_zone_create(int64_t max_size)
     asize = easy_max(page_size, easy_min(asize, size));
 
     // alloc memory
-    if ((memptr = (unsigned char *)memalign(EASY_MEM_PAGE_SIZE, asize + size)) == NULL) {
+    if ((memptr = (unsigned char *)easy_mempool_g_allocator.memalign(EASY_MEM_PAGE_SIZE, asize + size)) == NULL) {
         return NULL;
     }
 
@@ -72,7 +76,7 @@ easy_mem_zone_t *easy_mem_zone_create(int64_t max_size)
 // 内存释放
 void easy_mem_zone_destroy(easy_mem_zone_t *zone)
 {
-    free(zone);
+	easy_mempool_g_allocator.free(zone);
 }
 
 // 内存分配

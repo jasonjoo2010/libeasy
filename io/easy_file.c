@@ -10,7 +10,9 @@
 #undef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 500
 #include <unistd.h>
+#ifndef __APPLE__
 #include <sys/sendfile.h>
+#endif
 #include "easy_io.h"
 #include "easy_file.h"
 #include "easy_connection.h"

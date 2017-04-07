@@ -6,8 +6,9 @@
 * published by the Free Software Foundation.
 */
 
-
+#include <stdint.h>
 #include "easy_hash.h"
+
 
 /**
  * 创建一easy_hash_t
@@ -181,7 +182,7 @@ uint64_t easy_hash_key(volatile uint64_t key)
 
 uint64_t easy_hash_code(const void *key, int len, unsigned int seed)
 {
-    const uint64_t m = __UINT64_C(0xc6a4a7935bd1e995);
+    const uint64_t m = UINT64_C(0xc6a4a7935bd1e995);
     const int r = 47;
 
     uint64_t h = seed ^ (len * m);

@@ -15,7 +15,11 @@
 #include <netdb.h>
 #include <arpa/inet.h>      // inet_addr
 #include <sys/ioctl.h>
+#if defined(__APPLE__)
+#include <net/if.h>
+#else
 #include <linux/if.h>
+#endif
 
 /**
  * 把sockaddr_in转成string
@@ -99,12 +103,21 @@ int easy_inet_parse_host(easy_addr_t *address, const char *host, int port)
                 return EASY_ERROR;
         } else {
             // FIXME: gethostbyname会阻塞
-            char    buffer[1024];
             struct  hostent h, *hp;
-            int     rc;
 
-            if (gethostbyname_r(host, &h, buffer, 1024, &hp, &rc) || hp == NULL)
+#if defined(__APPLE__)
+            hp = gethostbyname(host);
+            if (hp == NULL)
                 return EASY_ERROR;
+            memcpy(&h, hp, sizeof(h));
+#else
+            {
+            	char    buffer[1024];
+            	int     rc;
+				if (gethostbyname_r(host, &h, buffer, 1024, &hp, &rc) || hp == NULL)
+					return EASY_ERROR;
+            }
+#endif
 
             addr.sin_addr.s_addr = *((in_addr_t *) (hp->h_addr));
         }

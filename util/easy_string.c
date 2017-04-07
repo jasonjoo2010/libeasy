@@ -14,8 +14,8 @@ char *easy_strncpy(char *dst, const char *src, size_t n)
     if (!n || !dst)
         return NULL;
 
-    const uint64_t himagic = __UINT64_C(0x8080808080808080);
-    const uint64_t lomagic = __UINT64_C(0x0101010101010101);
+    const uint64_t himagic = UINT64_C(0x8080808080808080);
+    const uint64_t lomagic = UINT64_C(0x0101010101010101);
     const uint64_t *nsrc = (const uint64_t *)src;
     const uint64_t *nend = nsrc + (--n / 8);
     uint64_t *ndst = (uint64_t *)dst;

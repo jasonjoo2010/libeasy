@@ -997,10 +997,12 @@ int easy_connection_write_socket(easy_connection_t *c)
         return EASY_OK;
 
     // 加塞
+#ifdef TCP_CORK
     if (EASY_IOTH_SELF->eio->tcp_cork && c->tcp_cork_flag == 0) {
         easy_socket_set_tcpopt(c->fd, TCP_CORK, 1);
         c->tcp_cork_flag = 1;
     }
+#endif
 
     ret = easy_socket_write(c->fd, &c->output);
 
@@ -1043,8 +1045,10 @@ static int easy_connection_write_again(easy_connection_t *c)
             easy_socket_set_tcpopt(c->fd, TCP_NODELAY, 1);
             c->tcp_nodelay_flag = 1;
         } else if (EASY_IOTH_SELF->eio->tcp_cork && c->tcp_cork_flag) {
+#ifdef TCP_CORK
             easy_socket_set_tcpopt(c->fd, TCP_CORK, 0);
             c->tcp_cork_flag = 0;
+#endif
         }
     }
 

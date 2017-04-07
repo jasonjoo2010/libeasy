@@ -14,7 +14,10 @@
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#ifndef __APPLE__
 #include <sys/sendfile.h>
+#endif
+#include <sys/uio.h>
 
 static int easy_socket_chain_writev(int fd, easy_list_t *l, struct iovec *iovs, int cnt, int *again);
 static int easy_socket_sendfile(int fd, easy_file_buf_t *fb, int *again);
@@ -34,7 +37,9 @@ int easy_socket_listen(easy_addr_t *address)
 
     easy_socket_non_blocking(fd);
     easy_socket_set_opt(fd, SO_REUSEADDR, 1);
+#ifdef TCP_DEFER_ACCEPT
     easy_socket_set_tcpopt(fd, TCP_DEFER_ACCEPT, 1);
+#endif
     memset(&addr, 0, sizeof(struct sockaddr_in));
     memcpy(&addr, address, sizeof(uint64_t));
 
@@ -161,7 +166,15 @@ static int easy_socket_sendfile(int fd, easy_file_buf_t *fb, int *again)
     int ret;
 
     do {
+#ifdef __APPLE__
+    	off_t count = fb->count;
+    	ret = sendfile(fb->fd, fd, (off_t)fb->offset, (off_t *)&count, 0, 0);
+    	if (ret == 0 || ret == EAGAIN) {
+    		ret = count;
+    	}
+#else
         ret = sendfile(fd, fb->fd, (off_t *)&fb->offset, fb->count);
+#endif
     } while(ret == -1 && errno == EINTR);
 
     // 结果处理

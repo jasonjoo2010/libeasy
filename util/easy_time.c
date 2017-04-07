@@ -95,5 +95,5 @@ int64_t easy_time_now()
 {
     struct timeval tv;
     gettimeofday (&tv, 0);
-    return __INT64_C(1000000) * tv.tv_sec + tv.tv_usec;
+    return INT64_C(1000000) * tv.tv_sec + tv.tv_usec;
 }

@@ -9,6 +9,9 @@
 
 #ifndef EASY_UTHREAD_H
 #define EASY_UTHREAD_H
+#if defined(__APPLE__) && !defined(_XOPEN_SOURCE)
+#define _XOPEN_SOURCE
+#endif
 
 #include <easy_pool.h>
 #include <easy_list.h>

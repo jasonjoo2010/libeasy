@@ -13,6 +13,7 @@
 #include <easy_define.h>
 #include <easy_list.h>
 #include <easy_atomic.h>
+#include "easy_mem_pool.h"
 
 /**
  * 简单内存分配器

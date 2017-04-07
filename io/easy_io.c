@@ -303,6 +303,9 @@ static void *easy_io_on_thread_start(void *args)
 
     // sched_setaffinity
     if (eio->affinity_enable) {
+#ifdef __APPLE__
+    	easy_error_log("sched_setaffinity error: macos cannot set");
+#else
         int cpunum = sysconf(_SC_NPROCESSORS_CONF);
         int st, cpuid;
         cpu_set_t mask;
@@ -315,6 +318,7 @@ static void *easy_io_on_thread_start(void *args)
         if (sched_setaffinity(0, sizeof(mask), &mask) == -1) {
             easy_error_log("sched_setaffinity error: %d (%s), cpuid=%d\n", errno, strerror(errno), cpuid);
         }
+#endif
     }
 
     // 有listen

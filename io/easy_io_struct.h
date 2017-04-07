@@ -21,6 +21,7 @@ EASY_CPP_START
 #define EV_STANDALONE    1
 #define EV_USE_MONOTONIC 0
 #include "ev.h"
+#include <pthread.h>
 #include <easy_pool.h>
 #include <easy_buf.h>
 #include <easy_list.h>

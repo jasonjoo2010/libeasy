@@ -48,6 +48,7 @@ extern void *easy_mempool_alloc(easy_mempool_t *pool, uint32_t size);
 extern void easy_mempool_free(easy_mempool_t *pool, void *ptr);
 
 extern void easy_mempool_set_memlimit(easy_mempool_t *pool, int64_t limit);
+extern easy_mempool_allocator_t easy_mempool_g_allocator;
 extern void easy_mempool_set_allocator(easy_mempool_t *pool, easy_mempool_allocator_t *allocator);
 extern int64_t easy_mempool_get_memtotal(easy_mempool_t *pool);
 
