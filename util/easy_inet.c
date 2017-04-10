@@ -20,6 +20,7 @@
 #else
 #include <linux/if.h>
 #endif
+#include <ifaddrs.h>
 
 /**
  * 把sockaddr_in转成string
@@ -133,33 +134,34 @@ int easy_inet_parse_host(easy_addr_t *address, const char *host, int port)
 /**
  * 得到本机所有IP
  */
-int easy_inet_hostaddr(uint64_t *address, int size)
-{
-    int             fd, ret, n;
-    struct ifconf   ifc;
-    struct ifreq    *ifr;
+int easy_inet_hostaddr(easy_inet_addr_t *address, int size) {
+	struct ifaddrs *ifaddr, *ifa;
+	int family, s;
+	int addr_count = 0;
 
-    ret = 0;
+	if (getifaddrs(&ifaddr) == -1) {
+		return 0;
+	}
 
-    if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-        return 0;
+	/* Walk through linked list, maintaining head pointer so we
+	 *              can free list later */
 
-    ifc.ifc_len = sizeof(struct ifreq) * size;
-    ifc.ifc_buf = (char *) malloc(ifc.ifc_len);
+	for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+		if (ifa->ifa_addr == NULL)
+			continue;
+		family = ifa->ifa_addr->sa_family;
+		if (family == AF_INET || family == AF_INET6) {
+			address[addr_count].family = family;
+			easy_strncpy(address[addr_count].name, ifa->ifa_name, sizeof(address[addr_count].name));
+			if (family == AF_INET) {
+				memcpy(&address[addr_count].addr, ifa->ifa_addr, sizeof(struct sockaddr_in));
+			} else if (family == AF_INET6) {
+				memcpy(&address[addr_count].addr6, ifa->ifa_addr, sizeof(struct sockaddr_in6));
+			}
+			addr_count ++;
+		}
+	}
 
-    if (ioctl(fd, SIOCGIFCONF, (char *)&ifc) < 0)
-        goto out;
-
-    ifr = ifc.ifc_req;
-
-    for (n = 0; n < ifc.ifc_len; n += sizeof(struct ifreq)) {
-    	printf("%s:%s\n", ifr->ifr_name, inet_ntoa(((struct sockaddr_in*)&(ifr->ifr_addr))->sin_addr));
-        memcpy(&address[ret++], &(ifr->ifr_addr), sizeof(uint64_t));
-        ifr++;
-    }
-
-out:
-    free(ifc.ifc_buf);
-    close(fd);
-    return ret;
+	freeifaddrs(ifaddr);
+	return addr_count;
 }
