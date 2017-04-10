@@ -3,3 +3,4 @@ libeasy.*
 test/util_pool
 test/util_string
 test/util_time
+test/util_inet

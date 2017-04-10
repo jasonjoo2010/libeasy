@@ -153,6 +153,7 @@ int easy_inet_hostaddr(uint64_t *address, int size)
     ifr = ifc.ifc_req;
 
     for (n = 0; n < ifc.ifc_len; n += sizeof(struct ifreq)) {
+    	printf("%s:%s\n", ifr->ifr_name, inet_ntoa(((struct sockaddr_in*)&(ifr->ifr_addr))->sin_addr));
         memcpy(&address[ret++], &(ifr->ifr_addr), sizeof(uint64_t));
         ifr++;
     }
