@@ -17,6 +17,9 @@ INCLUDES=-Iinclude \
 CFLAGS+=-Wall -fPIC -D_GNU_SOURCE -fno-strict-aliasing $(OPTIMIZATION) $(INCLUDES)
 LDFLAGS+=
 SRC:=$(wildcard io/*.c memory/*.c thread/*.c packet/http/*.c util/*.c)
+HEADER:=$(wildcard include/*.h io/*.h smemory/*.h packet/*.h packet/http/*.h thread/*.h util/*.h)
+SRC_TEST:=$(wildcard test/*.c)
+TARGET_TEST:=$(SRC:%.c=%)
 OBJ:=$(SRC:%.c=%.o)
 
 default: libev.a $(OBJ)
@@ -25,6 +28,19 @@ default: libev.a $(OBJ)
 io/ev/.libs/libev.a:
 	cd $(shell pwd)/io/ev && ./configure && make
 
-.PHONY : clean libev.a
+.PHONY : clean libev.a install test
+
+install: $(NAME)
+	install -m 0755 $(NAME) /usr/local/lib
+	install -m 0644 $(HEADER) /usr/local/include
+	
+test: 
+	for i in $(SRC_TEST); do \
+		cc -o $${i%.*} -leasy $$i; \
+	done
+
+util_time: test/util_time.c
+	$(CC) -leasy test/util_time.c -o util_time
+
 clean:
 	rm -f $(OBJ) $(NAME)
