@@ -38,7 +38,7 @@ install: $(NAME)
 	
 test: 
 	for i in $(SRC_TEST); do \
-		cc $(INCLUDES) -o $${i%.*} $$i -L. -leasy -lpthread -lm; \
+		cc $(INCLUDES) -o $${i%.*} $$i -L. libeasy.a -lpthread -lm; \
 	done
 
 clean:
