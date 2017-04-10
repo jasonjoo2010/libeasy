@@ -14,7 +14,6 @@
  * inet的通用函数
  */
 #include "easy_define.h"
-#include "easy_pool.h"
 
 EASY_CPP_START
 

@@ -3,8 +3,9 @@ NAME=libeasy.dylib
 else
 NAME=libeasy.so
 endif
-CC=gcc
-OPTIMIZATION?=-O2
+NAME_STATIC=libeasy.a
+CC=cc
+OPTIMIZATION?=
 INCLUDES=-Iinclude \
 		-Iio \
 		-Iio/ev \
@@ -22,13 +23,14 @@ SRC_TEST:=$(wildcard test/*.c)
 TARGET_TEST:=$(SRC:%.c=%)
 OBJ:=$(SRC:%.c=%.o)
 
-default: libev.a $(OBJ)
+default: io/ev/.libs/libev.a $(OBJ)
 	$(CC) $(LDFLAGS) -shared -fPIC -o $(NAME) $(OBJ) io/ev/.libs/ev.o io/ev/.libs/event.o
+	ar -r $(NAME_STATIC) $(OBJ) io/ev/.libs/ev.o io/ev/.libs/event.o
 
 io/ev/.libs/libev.a:
 	cd $(shell pwd)/io/ev && ./configure && make
 
-.PHONY : clean libev.a install test
+.PHONY : clean install test
 
 install: $(NAME)
 	install -m 0755 $(NAME) /usr/local/lib
@@ -36,7 +38,7 @@ install: $(NAME)
 	
 test: 
 	for i in $(SRC_TEST); do \
-		cc $(CFLAGS) -o $${i%.*} -leasy $$i; \
+		cc $(INCLUDES) -o $${i%.*} $$i -L. -leasy -lpthread -lm; \
 	done
 
 clean:

@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include "easy_mem_pool.h"
 
+#ifdef __APPLE__
 typedef int pthread_spinlock_t;
 
 int pthread_spin_init(pthread_spinlock_t *lock, int pshared) {
@@ -55,6 +56,8 @@ int pthread_spin_unlock(pthread_spinlock_t *lock) {
     *lock = 0;
     return 0;
 }
+
+#endif
 
 #if __GNUC__ >= 4
 /**
