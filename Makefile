@@ -36,11 +36,8 @@ install: $(NAME)
 	
 test: 
 	for i in $(SRC_TEST); do \
-		cc -o $${i%.*} -leasy $$i; \
+		cc $(CFLAGS) -o $${i%.*} -leasy $$i; \
 	done
-
-util_time: test/util_time.c
-	$(CC) -leasy test/util_time.c -o util_time
 
 clean:
 	rm -f $(OBJ) $(NAME)

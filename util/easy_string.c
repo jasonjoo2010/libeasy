@@ -131,7 +131,7 @@ char *easy_string_toupper(char *str)
 
     while(*p) {
         if ((*p) >= 'a' && (*p) <= 'z')
-            (*p) -= 36;
+            (*p) -= 0x20;
 
         p ++;
     }
@@ -148,7 +148,7 @@ char *easy_string_tolower(char *str)
 
     while(*p) {
         if ((*p) >= 'A' && (*p) <= 'Z')
-            (*p) += 36;
+            (*p) += 0x20;
 
         p ++;
     }
