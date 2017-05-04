@@ -13,7 +13,7 @@ int main() {
 	i = 0;
 	while(p) {
 		i ++;
-		printf("pool%d: (free => %d, max => %d)\n", i, p->end - p->last, p->max);
+		printf("pool%d: (free => %ld, max => %d)\n", i, p->end - p->last, p->max);
 		p = p->next;
 	}
 	easy_pool_clear(pool);
@@ -22,7 +22,7 @@ int main() {
 	p = pool;
 	while(p) {
 		i ++;
-		printf("pool%d: (free => %d, max => %d)\n", i, p->end - p->last, p->max);
+		printf("pool%d: (free => %ld, max => %d)\n", i, p->end - p->last, p->max);
 		p = p->next;
 	}
 	i = 0;
@@ -34,7 +34,7 @@ int main() {
 	p = pool;
 	while(p) {
 		i ++;
-		printf("pool%d: (free => %d, max => %d)\n", i, p->end - p->last, p->max);
+		printf("pool%d: (free => %ld, max => %d)\n", i, p->end - p->last, p->max);
 		p = p->next;
 	}
 	//string copy in pool

@@ -10,8 +10,13 @@
 #include "easy_hash.h"
 
 
-/**
+/*
  * 创建一easy_hash_t
+ * @param easy_pool_t *pool
+ * @param uint32_t size
+ *                   bucket count
+ * @param int offset
+ *                   offset of node property in data-struct
  */
 easy_hash_t *easy_hash_create(easy_pool_t *pool, uint32_t size, int offset)
 {
@@ -90,6 +95,10 @@ void *easy_hash_find(easy_hash_t *table, uint64_t key)
     return NULL;
 }
 
+/*
+ * 自定义元素比较算法
+ * 用于同样key_code的分组自定义查找，适用同code情况下自定义规则匹配（亦即自定义了code生成算法，故意同code碰撞分组）
+ */
 void *easy_hash_find_ex(easy_hash_t *table, uint64_t key, easy_hash_cmp_pt cmp, const void *a)
 {
     uint64_t            n;
@@ -136,6 +145,9 @@ void *easy_hash_del(easy_hash_t *table, uint64_t key)
     return NULL;
 }
 
+/*
+ * 直接删除指定的node
+ */
 int easy_hash_del_node(easy_hash_list_t *node)
 {
     easy_hash_list_t    *next, **pprev;
@@ -155,6 +167,9 @@ int easy_hash_del_node(easy_hash_list_t *node)
     return 1;
 }
 
+/*
+ * 带顺序list的复合元素加入hash，会同时追加顺序list尾部
+ */
 int easy_hash_dlist_add(easy_hash_t *table, uint64_t key, easy_hash_list_t *hash, easy_list_t *list)
 {
     easy_list_add_tail(list, &table->list);
@@ -173,13 +188,18 @@ void *easy_hash_dlist_del(easy_hash_t *table, uint64_t key)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// hash 64 bit
+/*
+ * 对uint64类型的key做hash_code
+ */
 uint64_t easy_hash_key(volatile uint64_t key)
 {
     void *ptr = (void *) &key;
     return easy_hash_code(ptr, sizeof(uint64_t), 5);
 }
 
+/*
+ * 对指定长度的字节集合做hash_code
+ */
 uint64_t easy_hash_code(const void *key, int len, unsigned int seed)
 {
     const uint64_t m = UINT64_C(0xc6a4a7935bd1e995);
