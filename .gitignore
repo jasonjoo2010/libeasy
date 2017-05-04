@@ -6,3 +6,4 @@ test/util_time
 test/util_inet
 test/util_hash
 test/util_array
+test/mem_pool

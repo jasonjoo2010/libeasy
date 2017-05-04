@@ -79,6 +79,11 @@ typedef union easy_mempool_atomic_t {
     };
 } easy_mempool_atomic_t;
 
+/*
+ * page:
+ * |  page_t  |  mem  |
+ */
+
 // page结构 后面直接跟page内存
 typedef struct easy_mempool_page_t {
     volatile int32_t base;
