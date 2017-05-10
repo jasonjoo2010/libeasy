@@ -97,6 +97,7 @@ static __inline__ int32_t easy_atomic_cmp_set(easy_atomic_t *lock, int32_t old, 
 }
 #endif
 
+#define easy_lock easy_spin_lock
 #define easy_trylock(lock)  (*(lock) == 0 && easy_atomic_cmp_set(lock, 0, 1))
 #define easy_unlock(lock)   {__asm__ ("" ::: "memory"); *(lock) = 0;}
 #define easy_spin_unlock easy_unlock
