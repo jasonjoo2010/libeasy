@@ -19,7 +19,13 @@ static inline easy_mem_cache_t *easy_mem_get_cache(unsigned char *obj);
 static inline easy_mem_slab_t *easy_mem_virt_to_slab(int order, const void *obj);
 static inline easy_mem_cache_t *easy_mem_cache_size(uint32_t size);
 
-// 内存初始化
+/*
+ * 内存初始化
+ * @param int start_alloc_size
+ *                  预置slab容量上限，高于此限则直接使用malloc分配
+ * @param int64_t max_size
+ *                  内存限制，仅针对start_alloc_size以内的分配单元总量限制
+ */
 int easy_mem_slab_init(int start_alloc_size, int64_t max_size)
 {
     int                 size, cache_num;

@@ -8,3 +8,4 @@ test/util_hash
 test/util_array
 test/mem_pool
 test/mem_zone
+test/mem_slab

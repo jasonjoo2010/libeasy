@@ -17,6 +17,7 @@
 
 /**
  * 简单内存分配器
+ * 单例使用
  */
 EASY_CPP_START
 
@@ -64,7 +65,13 @@ struct easy_mem_mgr_t {
     easy_mem_zone_t     *zone;
 };
 
-// 内存初始化
+/*
+ * 内存初始化
+ * @param int start_alloc_size
+ *                  预置slab容量上限，高于此限则直接使用malloc分配
+ * @param int64_t max_size
+ *                  内存限制，仅针对start_alloc_size以内的分配单元总量限制
+ */
 int easy_mem_slab_init(int start_size, int64_t max_size);
 void easy_mem_slab_destroy();
 // 内存分配
