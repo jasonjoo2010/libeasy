@@ -14,14 +14,14 @@ int main() {
 		//create cache in 1MB unit
 		void *ptr = easy_mem_slab_realloc(0, 1024 * 1024 * 1);
 		if (ptr == NULL) break;
-		printf("ptr%d: %d\n", i, ptr);
+		printf("ptr%d: %ld\n", i, (long)ptr);
 		mems[i] = ptr;
 	}
 	printf("alloc %d ptrs\n", i);
 	for (i = 0; i < 100; i ++) {
 		void *ptr = easy_mem_slab_realloc(0, 1024 * 1024 * 1);
 		if (ptr == NULL) break;
-		printf("tmp%d: %d\n", i, ptr);
+		printf("tmp%d: %ld\n", i, (long)ptr);
 		//free
 		easy_mem_slab_realloc(ptr, 0);
 	}
@@ -32,7 +32,7 @@ int main() {
 	}
 	for (i = 0; i < 100; i ++) {
 		void *ptr = easy_mem_slab_realloc(0, 1024 * 1024 * 1);
-		printf("tmp%d: %d\n", i, ptr);
+		printf("tmp%d: %ld\n", i, (long)ptr);
 		//free
 		easy_mem_slab_realloc(ptr, 0);
 	}

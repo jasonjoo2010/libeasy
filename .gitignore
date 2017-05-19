@@ -1,5 +1,7 @@
 *.o
 libeasy.*
+test/io_socket
+test/util_log
 test/util_pool
 test/util_string
 test/util_time

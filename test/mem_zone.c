@@ -11,7 +11,7 @@ int main() {
 		//want 1MB once
 		easy_mem_page_t *page = easy_mem_alloc_pages(zone, 4);
 		if (page == NULL) break;
-		printf("page: %d, free => %d\n", page, zone->free_pages);
+		printf("page: %ld, free => %d\n", (long)page, zone->free_pages);
 		ptr[i] = page;
 	}
 	int count = i;
@@ -23,7 +23,7 @@ int main() {
 		//want 16MB once
 		easy_mem_page_t *page = easy_mem_alloc_pages(zone, 8);
 		if (page == NULL) break;
-		printf("page: %d, free => %d\n", page, zone->free_pages);
+		printf("page: %ld, free => %d\n", (long)page, zone->free_pages);
 		ptr[i] = page;
 	}
 	count = i;

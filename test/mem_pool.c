@@ -5,7 +5,7 @@
 void thread_func() {
 	void *list[1000];
 	int i;
-	printf("init: %d\n", easy_mempool_get_thread_memtotal());
+	printf("init: %lld\n", easy_mempool_get_thread_memtotal());
 	for(i = 0; i < 1000; i ++) {
 		void *buf = easy_mempool_thread_realloc(0, 100);
 		if (buf == NULL) {
@@ -13,18 +13,18 @@ void thread_func() {
 			break;
 		}
 		list[i] = buf;
-		printf("alloc: %ld\n", buf);
+		printf("alloc: %ld\n", (long)buf);
 	}
-	printf("after alloc: %d\n", easy_mempool_get_thread_memtotal());
+	printf("after alloc: %lld\n", easy_mempool_get_thread_memtotal());
 	int count = i;
 	for(i = 0; i < count; i ++) {
 		easy_mempool_thread_realloc(list[i], 0);
 	}
-	printf("final: %d\n", easy_mempool_get_thread_memtotal());
+	printf("final: %lld\n", easy_mempool_get_thread_memtotal());
 }
 
 int main() {
-	printf("init: %d\n", easy_mempool_get_global_memtotal());
+	printf("init: %lld\n", easy_mempool_get_global_memtotal());
 	easy_mempool_set_global_memlimit(1024);
 	easy_mempool_set_thread_memlimit(1024 * 2);
 	void *list[1000];
@@ -36,14 +36,14 @@ int main() {
 			break;
 		}
 		list[i] = buf;
-		printf("alloc: %ld\n", buf);
+		printf("alloc: %ld\n", (long)buf);
 	}
-	printf("after alloc: %d\n", easy_mempool_get_global_memtotal());
+	printf("after alloc: %lld\n", easy_mempool_get_global_memtotal());
 	int count = i;
 	for(i = 0; i < count; i ++) {
 		easy_mempool_global_realloc(list[i], 0);
 	}
-	printf("final: %d\n", easy_mempool_get_global_memtotal());
+	printf("final: %lld\n", easy_mempool_get_global_memtotal());
 	//thread
 	{
 		pthread_t thread;

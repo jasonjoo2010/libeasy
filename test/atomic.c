@@ -31,6 +31,6 @@ int main() {
 	for (int i = 0; i < 100; i ++) {
 		pthread_join(threads[i], 0);
 	}
-	printf("done with counter = %ld, atomic_counter = %ld, started = %d, lock_started = %d\n", counter, atomic_counter, started, lock_started);
+	printf("done with counter = %ld, atomic_counter = %lld, started = %d, lock_started = %d\n", counter, atomic_counter, started, lock_started);
 	return 0;
 }

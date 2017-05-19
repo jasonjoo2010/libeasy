@@ -29,7 +29,7 @@ static void add_entry_group(easy_pool_t *pool, easy_hash_t *table, const char *g
 	entry->val = val;
 	int key_code = easy_hash_code(group, strlen(group), KEY_CODE_SEED);
 	int ret = easy_hash_add(table, key_code, &entry->list_node);
-	printf("add entry to group[%s]: %s -> %d : %d\n", group, entry->key, entry->val);
+	printf("add entry to group[%s]: %s -> %d\n", group, entry->key, entry->val);
 }
 
 static void find_entry(easy_hash_t *table, const char *str) {
@@ -83,7 +83,7 @@ int main() {
 	easy_hash_list_t *node;
 	easy_hash_for_each(i, node, table) {
 		hash_test_t *entry = (hash_test_t *)((char *)node - table->offset);
-		printf("%d(key: %d): %s => %d\n", i, entry->list_node.key, entry->key, entry->val);
+		printf("%d(key: %llu): %s => %d\n", i, entry->list_node.key, entry->key, entry->val);
 	}
 	find_entry(table, "test15");
 	find_entry(table, "test1");
@@ -96,7 +96,7 @@ int main() {
 	del_entry(table, "groupkey");
 	easy_hash_for_each(i, node, table) {
 		hash_test_t *entry = (hash_test_t *)((char *)node - table->offset);
-		printf("%d(key: %d): %s => %d\n", i, entry->list_node.key, entry->key, entry->val);
+		printf("%d(key: %llu): %s => %d\n", i, entry->list_node.key, entry->key, entry->val);
 	}
 	//顺序list+hash的复合元素大同小异，但需要注意的是需要独立的函数对
 	easy_pool_destroy(pool);

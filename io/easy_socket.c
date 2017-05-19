@@ -23,7 +23,7 @@ static int easy_socket_chain_writev(int fd, easy_list_t *l, struct iovec *iovs, 
 static int easy_socket_sendfile(int fd, easy_file_buf_t *fb, int *again);
 
 /**
- * 打开监听端口
+ * 创建一个socket，监听端口
  */
 int easy_socket_listen(easy_addr_t *address)
 {
@@ -195,20 +195,26 @@ static int easy_socket_sendfile(int fd, easy_file_buf_t *fb, int *again)
     return ret;
 }
 
-// 非阻塞
+/*
+ * 设置socket为非阻塞模式
+ */
 int easy_socket_non_blocking(int fd)
 {
     int     flags = 1;
     return ioctl(fd, FIONBIO, &flags);
 }
 
-// TCP
+/*
+ * 设置指定的tcp参数(IPPROTO_TCP)
+ */
 int easy_socket_set_tcpopt(int fd, int option, int value)
 {
     return setsockopt(fd, IPPROTO_TCP, option, (const void *) &value, sizeof(value));
 }
 
-// SOCKET
+/*
+ * 设置指定的socket参数(SOL_SOCKET)
+ */
 int easy_socket_set_opt(int fd, int option, int value)
 {
     return setsockopt(fd, SOL_SOCKET, option, (void *)&value, sizeof(value));
