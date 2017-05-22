@@ -465,7 +465,9 @@ static void easy_connection_on_accept(struct ev_loop *loop, ev_io *w, int revent
     // start read
     easy_list_add_tail(&c->conn_list_node, &c->ioth->connected_list);
     c->event_status = EASY_EVENT_READ;
-    easy_connection_on_readable(loop, &c->read_watcher, 0);
+    ev_io_start(loop, &c->read_watcher);
+    ev_io_start(loop, &c->write_watcher);
+    //easy_connection_on_readable(loop, &c->read_watcher, 0);
 
     return;
 }
@@ -620,8 +622,8 @@ static void easy_connection_on_readable(struct ev_loop *loop, ev_io *w, int reve
 
     // 从conn里读入数据
     if ((n = read(c->fd, m->input->last, m->next_read_len)) <= 0) {
-        easy_debug_log("n: %d, errno: %s(%d)\n", n, strerror(errno), errno);
-        goto error_exit;
+		easy_debug_log("n: %d, errno: %s(%d)\n", n, strerror(errno), errno);
+		goto error_exit;
     }
 
     c->read_eof = (n < m->next_read_len);
