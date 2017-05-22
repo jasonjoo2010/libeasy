@@ -1,5 +1,7 @@
+.DS_Store
 *.o
 libeasy.*
+io/ev/ev.3
 test/io_socket
 test/util_log
 test/util_pool

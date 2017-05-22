@@ -47,7 +47,7 @@ static void easy_connection_autoconn(easy_connection_t *c);
  * @param host  机器名或IP, 或NULL
  * @param port  端口号
  *
- * @return      如果成功返回easy_connection_t对象, 否则返回NULL
+ * @return      如果成功返回easy_listen_t对象, 否则返回NULL
  */
 easy_listen_t *easy_connection_add_listen(easy_io_t *eio,
         const char *host, int port, easy_io_handler_pt *handler)
@@ -99,7 +99,7 @@ easy_listen_t *easy_connection_listen_addr(easy_io_t *eio, easy_addr_t addr, eas
     l->handler = handler;
 
     for(i = 0; i < cnt; i++) {
-        ev_io_init(&l->read_watcher[i], easy_connection_on_accept, l->fd, EV_READ | EV_CLEANUP);
+        ev_io_init(&l->read_watcher[i], easy_connection_on_accept, l->fd, EV_READ);
         ev_set_priority (&l->read_watcher[i], EV_MAXPRI);
         l->read_watcher[i].data = l;
     }
