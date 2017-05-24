@@ -65,6 +65,23 @@ EASY_CPP_START
 #define EASY_FILE_SENDFILE          3
 #define EASY_FILE_WILLNEED          4
 
+//TODO
+// summary
+#define EASY_SUMMARY_CNT            64
+#define EASY_SUMMARY_LENGTH_BIT     10
+#define EASY_SUMMARY_LENGTH         (1<<EASY_SUMMARY_LENGTH_BIT)
+#define EASY_SUMMARY_LENGTH_MASK    (EASY_SUMMARY_LENGTH - 1)
+
+#define EASY_DISCONNECT_ADDR        0x02
+#define EASY_CONNECT_ADDR           0x03
+#define EASY_CONNECT_SEND           0x05
+#define EASY_OTHER_EVENT            0xf0
+#define EASY_ADD_LISTEN             0x10
+
+#define EASY_CONNECT_AUTOCONN       0x01
+#define EASY_CONNECT_SSL            0x02
+//end TODO
+
 // async + spinlock
 #define EASY_BASETH_DEFINE                          \
     easy_baseth_on_start_pt         *on_start;      \
@@ -88,8 +105,6 @@ typedef struct easy_client_t easy_client_t;
 typedef struct easy_io_t easy_io_t;
 typedef struct easy_io_handler_pt easy_io_handler_pt;
 typedef struct easy_io_stat_t easy_io_stat_t;
-typedef struct easy_baseth_t easy_baseth_t;
-typedef struct easy_thread_pool_t easy_thread_pool_t;
 typedef struct easy_client_wait_t easy_client_wait_t;
 typedef struct easy_file_task_t easy_file_task_t;
 
@@ -245,6 +260,23 @@ struct easy_message_t {
     void                    *user_data;
 };
 
+//用于统计流量rt信息
+typedef struct easy_summary_node {
+    int                     fd;
+    uint32_t                doing_request_count;
+    uint64_t                done_request_count;
+    uint64_t                in_byte, out_byte;
+    ev_tstamp               rt_total;
+} easy_summary_node_t;
+
+typedef struct easy_summary {
+    int                     max_fd;
+    ev_tstamp               time;
+    easy_atomic_t           lock;
+    easy_pool_t             *pool;
+    easy_summary_node_t     *bucket[EASY_SUMMARY_CNT];
+} easy_summary_t;
+
 // 用于发送, 只带一个easy_request_t
 struct easy_session_t {
     EASY_MESSAGE_SESSION_HEADER;
@@ -291,6 +323,21 @@ struct easy_io_stat_t {
     easy_io_t               *eio;
 };
 
+// base thread
+typedef struct easy_baseth {
+    EASY_BASETH_DEFINE
+} easy_baseth_t;
+
+typedef struct easy_thread_pool {
+    int                     thread_count;
+    int                     member_size;
+    easy_atomic32_t         last_number;
+    easy_list_t             list_node;
+    struct easy_thread_pool *next;
+    char                    *last;
+    char                    data[0];
+} easy_thread_pool_t;
+
 // easy_io对象
 struct easy_io_t {
     easy_pool_t             *pool;
@@ -319,21 +366,6 @@ struct easy_io_t {
     easy_atomic_t           recv_byte;
 
     easy_atomic_t           connect_num;
-};
-
-// base thread
-struct easy_baseth_t {
-    EASY_BASETH_DEFINE
-};
-
-struct easy_thread_pool_t {
-    int                     thread_count;
-    int                     member_size;
-    easy_atomic32_t         last_number;
-    easy_list_t             list_node;
-    easy_thread_pool_t      *next;
-    char                    *last;
-    char                    data[0];
 };
 
 struct easy_client_wait_t {

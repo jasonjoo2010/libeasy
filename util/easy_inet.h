@@ -18,19 +18,12 @@
 
 EASY_CPP_START
 
-typedef struct {
-	char name[50];
-	sa_family_t family;
-	struct sockaddr_in addr;
-	struct sockaddr_in6 addr6;
-} easy_inet_addr_t;
-
 /**
  * 把sockaddr_in转成string
  */
 extern char *easy_inet_addr_to_str(easy_addr_t *addr, char *buffer, int len);
 /**
- * 把str转成addr(用uint64_t表示,IPV4)
+ * 把str转成addr
  */
 extern easy_addr_t easy_inet_str_to_addr(const char *host, int port);
 /**
@@ -43,10 +36,29 @@ extern int easy_inet_parse_host(easy_addr_t *address, const char *host, int port
  * 			合法则返回1
  */
 extern int easy_inet_is_ipaddr(const char *host);
+extern int easy_inet_is_ipaddr6(const char *host);
 /**
  * 得到本机所有IP
+ * @param local 是否只取本地回环地址
  */
-extern int easy_inet_hostaddr(easy_inet_addr_t *address, int size);
+extern int easy_inet_hostaddr(easy_addr_t *address, int size, int local);
+/*
+ * 得到一个新的地址，只改端口号
+ */
+extern easy_addr_t easy_inet_add_port(const easy_addr_t *addr, int diff);
+/*
+ * 判断给定的地址是否是本机地址
+ */
+extern int easy_inet_myip(const easy_addr_t *addr);
+/*
+ * sockaddr_in <=> easy_addr_t
+ */
+extern void easy_inet_atoe(const void *a, easy_addr_t *e);
+extern void easy_inet_etoa(const easy_addr_t *e, void *a);
+
+//TODO
+/*extern easy_addr_t easy_inet_getpeername(int s);
+*/
 
 EASY_CPP_END
 

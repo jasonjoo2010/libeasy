@@ -9,6 +9,30 @@
 
 #include <easy_string.h>
 
+char *easy_num_to_str(char *dest, int len, uint64_t number) {
+	snprintf(dest, len, "%lld", number);
+	return dest;
+}
+
+char *easy_string_capitalize(char *str, int len) {
+	int i = 0;
+	int first = 0;
+	for (; i < len; i ++) {
+		if ((str[i] >= 'a' && str[i] <= 'z') || (str[i] >= 'A' && str[i] <= 'Z')) {
+			first ++;
+		} else {
+			first = 0;
+		}
+		if (first == 1 && str[i] >= 'a' && str[i] <= 'z') str[i] += 0x20;
+		if (first > 1 && str[i] >= 'A' && str[i] <= 'Z') str[i] -= 0x20;
+	}
+	return str;
+}
+
+char *easy_strcpy(char *dest, const char *src) {
+	return easy_strncpy(dest, src, strlen(src));
+}
+
 char *easy_strncpy(char *dst, const char *src, size_t n)
 {
     if (!n || !dst)

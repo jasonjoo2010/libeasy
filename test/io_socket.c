@@ -35,16 +35,24 @@ static int on_process(easy_request_t *r) {
 static void *on_decode(easy_message_t *m) {
 	msg_t *packet;
 	int len = m->input->last - m->input->pos;
+	int i = 0, pos = 0;
 	printf("len: %d\n", len);
 	if ((packet = (msg_t *)easy_pool_alloc(m->pool,
 				  len + sizeof(msg_t))) == NULL) {
 		m->status = EASY_ERROR;
 		return NULL;
 	}
-	packet->len = len;
-	packet->data = packet + 1;
-	memcpy(packet + 1, m->input->pos, len);
-	m->input->pos = m->input->last;
+	packet->data = (unsigned char *)(packet + 1);
+	memcpy(packet->data, m->input->pos, len);
+	for (i = 0; i < len; i ++) {
+		if (m->input->pos[i] == 0x0a) {
+			break;
+		}
+		if (m->input->pos[i] == 0x0d) continue;
+		packet->data[pos ++] = m->input->pos[i];
+	}
+	packet->len = pos;
+	m->input->pos += i + 1;
 	return packet;
 }
 
@@ -61,17 +69,26 @@ static int async_request_process(easy_request_t *r, void *args) {
 	msg_t *out;
 	int len = 0;
 	char buf[msg->len + 20];
-	strcpy(buf, "recv: ");
-	char *p = buf + strlen(buf);
-	for (int i = 0; i < msg->len; i ++) {
-		if (msg->data[i] == 0x0a) continue;
-		*(p ++) = msg->data[i];
+	if (msg->len == 0) {
+		return EASY_OK;
 	}
-	*(p ++) = 0x0a;
-	len = p - buf;
+	if (msg->len == 4 && strncmp(msg->data, "quit", 4) == 0) {
+		//quit
+		easy_connection_destroy(r->ms->c);
+		strcpy(buf, "bye!\n");
+		len = strlen(buf);
+	} else {
+		sprintf(buf, "recv(%d): ", msg->len);
+		char *p = buf + strlen(buf);
+		for (int i = 0; i < msg->len; i ++) {
+			*(p ++) = msg->data[i];
+		}
+		*(p ++) = 0x0a;
+		len = p - buf;
+	}
 	out = easy_pool_alloc(r->ms->pool, sizeof(msg_t) + len);
 	out->len = len;
-	out->data = out + 1;
+	out->data = (unsigned char *)(out + 1);
 	memcpy(out + 1, buf, len);
 	r->opacket = out;
     return EASY_OK;
@@ -80,8 +97,10 @@ static int async_request_process(easy_request_t *r, void *args) {
 
 /*
  * 数据流：<in_data> -> decode -> process -> encode -> <out_data> -> cleanup
+ * 本例实现了一个类echo server，输入可打印字符串，输出recv: <string>
  */
 int main() {
+	easy_log_level = EASY_LOG_ALL;
 	easy_io_handler_pt handler = {0};
 	handler.on_connect = on_connect;
 	handler.on_disconnect = on_disconnect;
@@ -91,7 +110,7 @@ int main() {
 	handler.encode = on_encode;
 	easy_io_create(1);
 	workers = easy_request_thread_create(100, async_request_process, NULL);
-	easy_io_add_listen("127.0.0.1", 12345, &handler);
+	easy_io_add_listen("::1", 12345, &handler);
 	easy_io_start();
 	// 起处理速度统计定时器
 	ev_timer stat_watcher;

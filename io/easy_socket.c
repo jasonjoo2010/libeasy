@@ -9,8 +9,8 @@
 
 #include "easy_socket.h"
 #include "easy_io.h"
-#include <easy_inet.h>
-#include <easy_string.h>
+#include "easy_inet.h"
+#include "easy_string.h"
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -28,9 +28,11 @@ static int easy_socket_sendfile(int fd, easy_file_buf_t *fb, int *again);
 int easy_socket_listen(easy_addr_t *address)
 {
     int                 fd = -1;
-    struct sockaddr_in  addr;
+    struct sockaddr_in6 addr;
+    int addr_size = sizeof(addr);
+    memset(&addr, 0, sizeof(addr));
 
-    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(address->family, SOCK_STREAM, 0)) < 0) {
         easy_trace_log("create socket error.\n");
         goto error_exit;
     }
@@ -40,10 +42,18 @@ int easy_socket_listen(easy_addr_t *address)
 #ifdef TCP_DEFER_ACCEPT
     easy_socket_set_tcpopt(fd, TCP_DEFER_ACCEPT, 1);
 #endif
-    memset(&addr, 0, sizeof(struct sockaddr_in));
-    memcpy(&addr, address, sizeof(uint64_t));
+    if (address->family == AF_INET) {
+    	//ipv4
+    	memcpy(&addr, address, sizeof(uint64_t));
+    	addr_size = sizeof(struct sockaddr_in);
+    } else {
+    	//ipv6
+    	addr.sin6_family = address->family;
+    	addr.sin6_port = address->port;
+    	memcpy(&addr.sin6_addr, address->u.addr6, sizeof(struct in6_addr));
+    }
 
-    if (bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) < 0) {
+    if (bind(fd, (struct sockaddr *)&addr, addr_size) < 0) {
         easy_trace_log("bind socket error: %d\n", errno);
         goto error_exit;
     }
@@ -58,7 +68,7 @@ int easy_socket_listen(easy_addr_t *address)
 error_exit:
 
     if (fd >= 0)
-        close(fd);
+    	easy_safe_close(fd);
 
     return -1;
 }

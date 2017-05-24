@@ -57,13 +57,14 @@ static __inline__ void easy_atomic_add(easy_atomic_t *v, int64_t i)
         EASY_SMP_LOCK "addq %1,%0"
         : "=m" ((*v)) : "r" (i), "m" ((*v)));
 }
-static __inline__ int64_t easy_atomic_add_return(easy_atomic_t *value, int64_t diff)
+static __inline__ int64_t easy_atomic_add_return(easy_atomic_t *value, int64_t i)
 {
-    int64_t old = diff;
-    __asm__ volatile (
-        EASY_SMP_LOCK "xaddq %0, %1"
-        :"+r" (diff), "+m" (*value) : : "memory");
-    return diff + old;
+    int64_t                 __i = i;
+    __asm__ __volatile__(
+        EASY_SMP_LOCK "xaddq %0, %1;"
+        :"=r"(i)
+        :"m"(*value), "0"(i));
+    return i + __i;
 }
 static __inline__ int64_t easy_atomic_cmp_set(easy_atomic_t *lock, int64_t old, int64_t set)
 {
@@ -128,13 +129,165 @@ static __inline__ void easy_spin_lock(easy_atomic_t *lock)
 
 static __inline__ void easy_clear_bit(unsigned long nr, volatile void *addr)
 {
-    int8_t *m = ((int8_t *) addr) + (nr >> 3);
-    *m &= ~(1 << (nr & 7));
+    int8_t                  *m = ((int8_t *) addr) + (nr >> 3);
+    *m &= (int8_t)(~(1 << (nr & 7)));
 }
 static __inline__ void easy_set_bit(unsigned long nr, volatile void *addr)
 {
-    int8_t *m = ((int8_t *) addr) + (nr >> 3);
-    *m |= 1 << (nr & 7);
+    int8_t                  *m = ((int8_t *) addr) + (nr >> 3);
+    *m |= (int8_t)(1 << (nr & 7));
+}
+
+typedef struct easy_spinrwlock_t {
+    easy_atomic_t           ref_cnt;
+    easy_atomic_t           wait_write;
+} easy_spinrwlock_t;
+#define EASY_SPINRWLOCK_INITIALIZER {0, 0}
+static __inline__ int easy_spinrwlock_rdlock(easy_spinrwlock_t *lock)
+{
+    int                     ret = EASY_OK;
+
+    if (NULL == lock) {
+        ret = EASY_ERROR;
+    } else {
+        int                     cond = 1;
+
+        while (cond) {
+            int                     loop = 1;
+
+            do {
+                easy_atomic_t           oldv = lock->ref_cnt;
+
+                if (0 <= oldv
+                        && 0 == lock->wait_write) {
+                    easy_atomic_t           newv = oldv + 1;
+
+                    if (easy_atomic_cmp_set(&lock->ref_cnt, oldv, newv)) {
+                        cond = 0;
+                        break;
+                    }
+                }
+
+                asm("pause");
+                loop <<= 1;
+            } while (loop < 1024);
+
+            sched_yield();
+        }
+    }
+
+    return ret;
+}
+static __inline__ int easy_spinrwlock_wrlock(easy_spinrwlock_t *lock)
+{
+    int                     ret = EASY_OK;
+
+    if (NULL == lock) {
+        ret = EASY_ERROR;
+    } else {
+        int                     cond = 1;
+        easy_atomic_inc(&lock->wait_write);
+
+        while (cond) {
+            int                     loop = 1;
+
+            do {
+                easy_atomic_t           oldv = lock->ref_cnt;
+
+                if (0 == oldv) {
+                    easy_atomic_t           newv = -1;
+
+                    if (easy_atomic_cmp_set(&lock->ref_cnt, oldv, newv)) {
+                        cond = 0;
+                        break;
+                    }
+                }
+
+                asm("pause");
+                loop <<= 1;
+            } while (loop < 1024);
+
+            sched_yield();
+        }
+
+        easy_atomic_dec(&lock->wait_write);
+    }
+
+    return ret;
+}
+static __inline__ int easy_spinrwlock_try_rdlock(easy_spinrwlock_t *lock)
+{
+    int                     ret = EASY_OK;
+
+    if (NULL == lock) {
+        ret = EASY_ERROR;
+    } else {
+        ret = EASY_AGAIN;
+        easy_atomic_t           oldv = lock->ref_cnt;
+
+        if (0 <= oldv
+                && 0 == lock->wait_write) {
+            easy_atomic_t           newv = oldv + 1;
+
+            if (easy_atomic_cmp_set(&lock->ref_cnt, oldv, newv)) {
+                ret = EASY_OK;
+            }
+        }
+    }
+
+    return ret;
+}
+static __inline__ int easy_spinrwlock_try_wrlock(easy_spinrwlock_t *lock)
+{
+    int                     ret = EASY_OK;
+
+    if (NULL == lock) {
+        ret = EASY_ERROR;
+    } else {
+        ret = EASY_AGAIN;
+        easy_atomic_t           oldv = lock->ref_cnt;
+
+        if (0 == oldv) {
+            easy_atomic_t           newv = -1;
+
+            if (easy_atomic_cmp_set(&lock->ref_cnt, oldv, newv)) {
+                ret = EASY_OK;
+            }
+        }
+    }
+
+    return ret;
+}
+static __inline__ int easy_spinrwlock_unlock(easy_spinrwlock_t *lock)
+{
+    int                     ret = EASY_OK;
+
+    if (NULL == lock) {
+        ret = EASY_ERROR;
+    } else {
+        while (1) {
+            easy_atomic_t           oldv = lock->ref_cnt;
+
+            if (-1 == oldv) {
+                easy_atomic_t           newv = 0;
+
+                if (easy_atomic_cmp_set(&lock->ref_cnt, oldv, newv)) {
+                    break;
+                }
+            } else if (0 < oldv) {
+                easy_atomic_t           newv = oldv - 1;
+
+                if (easy_atomic_cmp_set(&lock->ref_cnt, oldv, newv)) {
+                    break;
+                }
+            } else {
+                ret = EASY_ERROR;
+                break;
+            }
+        }
+    }
+
+    return ret;
 }
 
 EASY_CPP_END

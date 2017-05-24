@@ -105,7 +105,7 @@ void easy_buf_destroy(easy_buf_t *b)
     easy_list_del(&b->node);
 
     if ((b->flags & EASY_BUF_CLOSE_FILE) == EASY_BUF_CLOSE_FILE)
-        close(((easy_file_buf_t *)b)->fd);
+    	easy_safe_close(((easy_file_buf_t *)b)->fd);
 
     // cleanup
     if ((cleanup = b->cleanup)) {
@@ -191,7 +191,7 @@ void easy_buf_chain_offer(easy_list_t *l, easy_buf_t *b)
 /**
  * 把s复制到d上
  */
-int easy_buf_string_copy(easy_pool_t *pool, easy_buf_string_t *d, easy_buf_string_t *s)
+int easy_buf_string_copy(easy_pool_t *pool, easy_buf_string_t *d, const easy_buf_string_t *s)
 {
     if (s->len > 0) {
         d->data = (char *)easy_pool_alloc(pool, s->len);
@@ -218,3 +218,12 @@ int easy_buf_string_printf(easy_pool_t *pool, easy_buf_string_t *d, const char *
     return len;
 }
 
+int easy_buf_list_len(easy_list_t *l) {
+	int len = 0;
+	easy_list_t *t = l;
+	while (t && t->next != l) {
+		len ++;
+		t = t->next;
+	}
+	return len;
+}

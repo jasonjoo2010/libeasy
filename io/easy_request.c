@@ -165,7 +165,6 @@ int easy_thread_pool_push(easy_thread_pool_t *tp, easy_request_t *r, uint64_t hv
 
     // dispatch
     if (hv == 0) hv = easy_hash_key((long)r->ms->c);
-
     rth = (easy_request_thread_t *)easy_thread_pool_hash(tp, hv);
     easy_list_del(&r->request_list_node);
 

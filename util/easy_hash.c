@@ -7,6 +7,7 @@
 */
 
 #include <stdint.h>
+#include <string.h>
 #include "easy_hash.h"
 
 
@@ -18,60 +19,61 @@
  * @param int offset
  *                   offset of node property in data-struct
  */
-easy_hash_t *easy_hash_create(easy_pool_t *pool, uint32_t size, int offset)
-{
-    easy_hash_t         *table;
-    easy_hash_list_t    **buckets;
-    uint32_t            n;
+easy_hash_t *easy_hash_create(easy_pool_t *pool, uint32_t size, int offset) {
+	easy_hash_t *table;
+	easy_hash_list_t **buckets;
+	uint32_t n;
 
-    // 2 ^ m
-    n = 4;
-    size &= 0x7fffffff;
+	// 2 ^ m
+	n = 4;
+	size &= 0x7fffffff;
 
-    while(size > n) n <<= 1;
+	while (size > n)
+		n <<= 1;
 
-    // alloc
-    buckets = (easy_hash_list_t **)easy_pool_calloc(pool, n * sizeof(easy_hash_list_t *));
-    table = (easy_hash_t *)easy_pool_alloc(pool, sizeof(easy_hash_t));
+	// alloc
+	buckets = (easy_hash_list_t **) easy_pool_calloc(pool,
+			n * sizeof(easy_hash_list_t *));
+	table = (easy_hash_t *) easy_pool_alloc(pool, sizeof(easy_hash_t));
 
-    if (table == NULL || buckets == NULL)
-        return NULL;
+	if (table == NULL || buckets == NULL)
+		return NULL;
 
-    table->buckets = buckets;
-    table->size = n;
-    table->mask = n - 1;
-    table->count = 0;
-    table->offset = offset;
-    table->seqno = 1;
-    easy_list_init(&table->list);
+	table->buckets = buckets;
+	table->size = n;
+	table->mask = n - 1;
+	table->count = 0;
+	table->offset = offset;
+	table->seqno = 1;
+	table->flags = 0;
+	easy_list_init(&table->list);
 
-    return table;
+	return table;
 }
 
-int easy_hash_add(easy_hash_t *table, uint64_t key, easy_hash_list_t *list)
-{
-    uint64_t            n;
-    easy_hash_list_t    *first;
+int easy_hash_add(easy_hash_t *table, uint64_t key, easy_hash_list_t *list) {
+	uint64_t n;
+	easy_hash_list_t *first;
 
-    n = easy_hash_key(key);
-    n &= table->mask;
+	n = easy_hash_key(key);
+	n &= table->mask;
 
-    // init
-    list->key = key;
-    table->count ++;
-    table->seqno ++;
+	// init
+	list->key = key;
+	table->count++;
+	table->seqno++;
 
-    // add to list
-    first = table->buckets[n];
-    list->next = first;
+	// add to list
+	first = table->buckets[n];
+	list->next = first;
 
-    if (first)
-        first->pprev = &list->next;
+	if (first)
+		first->pprev = &list->next;
 
-    table->buckets[n] = (easy_hash_list_t *)list;
-    list->pprev = &(table->buckets[n]);
+	table->buckets[n] = (easy_hash_list_t *) list;
+	list->pprev = &(table->buckets[n]);
 
-    return EASY_OK;
+	return EASY_OK;
 }
 
 void *easy_hash_find(easy_hash_t *table, uint64_t key)
@@ -93,6 +95,13 @@ void *easy_hash_find(easy_hash_t *table, uint64_t key)
     }
 
     return NULL;
+}
+
+void easy_hash_clear(easy_hash_t *table) {
+	memset(table->buckets, 0, table->size * sizeof(easy_hash_list_t *));
+	table->count = 0;
+	table->seqno = 1;
+	easy_list_init(&table->list);
 }
 
 /*
@@ -200,58 +209,179 @@ uint64_t easy_hash_key(volatile uint64_t key)
 /*
  * 对指定长度的字节集合做hash_code
  */
-uint64_t easy_hash_code(const void *key, int len, unsigned int seed)
-{
-    const uint64_t m = UINT64_C(0xc6a4a7935bd1e995);
-    const int r = 47;
+uint64_t easy_hash_code(const void *key, int len, unsigned int seed) {
+	const uint64_t m = UINT64_C(0xc6a4a7935bd1e995);
+	const int r = 47;
 
-    uint64_t h = seed ^ (len * m);
+	uint64_t h = seed ^ (len * m);
 
-    const uint64_t *data = (const uint64_t *)key;
-    const uint64_t *end = data + (len / 8);
+	const uint64_t *data = (const uint64_t *) key;
+	const uint64_t *end = data + (len / 8);
 
-    while(data != end) {
-        uint64_t k = *data++;
+	while (data != end) {
+		uint64_t k = *data++;
 
-        k *= m;
-        k ^= k >> r;
-        k *= m;
+		k *= m;
+		k ^= k >> r;
+		k *= m;
 
-        h ^= k;
-        h *= m;
-    }
+		h ^= k;
+		h *= m;
+	}
 
-    const unsigned char *data2 = (const unsigned char *)data;
+	const unsigned char *data2 = (const unsigned char *) data;
 
-    switch(len & 7) {
-    case 7:
-        h ^= (uint64_t)(data2[6]) << 48;
+	switch (len & 7) {
+		case 7:
+			h ^= (uint64_t) (data2[6]) << 48;
+		case 6:
+			h ^= (uint64_t) (data2[5]) << 40;
+		case 5:
+			h ^= (uint64_t) (data2[4]) << 32;
+		case 4:
+			h ^= (uint64_t) (data2[3]) << 24;
+		case 3:
+			h ^= (uint64_t) (data2[2]) << 16;
+		case 2:
+			h ^= (uint64_t) (data2[1]) << 8;
+		case 1:
+			h ^= (uint64_t) (data2[0]);
+			h *= m;
+	};
+	h ^= h >> r;
+	h *= m;
+	h ^= h >> r;
+	return h;
+}
 
-    case 6:
-        h ^= (uint64_t)(data2[5]) << 40;
+#define FNV1A_64_INIT ((uint64_t) 0xcbf29ce484222325ULL)
 
-    case 5:
-        h ^= (uint64_t)(data2[4]) << 32;
+uint64_t easy_fnv_hashcode(const void *key, int wrdlen, unsigned int seed) {
+	unsigned char *bp = (unsigned char *)key;
+	unsigned char *be = bp + wrdlen;
+	uint64_t hval = FNV1A_64_INIT + seed;
+	while (bp < be) {
+		hval ^= (uint64_t) *bp++;
+		hval += (hval << 1) + (hval << 4) + (hval << 5) +
+		(hval << 7) + (hval << 8) + (hval << 40);
+	}
+	return hval;
+}
 
-    case 4:
-        h ^= (uint64_t)(data2[3]) << 24;
+easy_hash_string_t *easy_hash_string_create(easy_pool_t *pool, uint32_t size, int ignore_case) {
+	easy_hash_string_t *table;
+	easy_string_pair_t **buckets;
+	uint32_t n;
 
-    case 3:
-        h ^= (uint64_t)(data2[2]) << 16;
+	// 2 ^ m
+	n = 4;
+	size &= 0x7fffffff;
 
-    case 2:
-        h ^= (uint64_t)(data2[1]) << 8;
+	while (size > n)
+		n <<= 1;
 
-    case 1:
-        h ^= (uint64_t)(data2[0]);
-        h *= m;
-    };
+	// alloc
+	buckets = (easy_string_pair_t **) easy_pool_calloc(pool,
+			n * sizeof(easy_string_pair_t *));
+	table = (easy_hash_string_t *) easy_pool_alloc(pool, sizeof(easy_hash_string_t));
 
-    h ^= h >> r;
+	if (table == NULL || buckets == NULL)
+		return NULL;
 
-    h *= m;
+	table->buckets = buckets;
+	table->size = n;
+	table->mask = n - 1;
+	table->count = 0;
+	table->ignore_case = ignore_case;
+	easy_list_init(&table->list);
 
-    h ^= h >> r;
+	return table;
+}
 
-    return h;
+void easy_hash_string_add(easy_hash_string_t *table, easy_string_pair_t *header) {
+	easy_string_pair_t *first;
+	uint64_t n = easy_fnv_hashcode(header->name.data, header->name.len, 0);
+	n &= table->mask;
+
+	// add to list
+	table->count++;
+	first = table->buckets[n];
+	header->next = first;
+	table->buckets[n] = header;
+}
+
+easy_string_pair_t *easy_hash_string_get(easy_hash_string_t *table, const char *key, int len) {
+	uint64_t              n;
+	easy_string_pair_t    *list;
+
+	n = easy_fnv_hashcode(key, len, 0);
+	n &= table->mask;
+	list = table->buckets[n];
+
+	// foreach
+	while(list) {
+		if (list->name.len == len) {
+			if (table->ignore_case) {
+				if (strncasecmp(list->name.data, key, len) == 0) {
+					return list;
+				}
+			} else {
+				if (strncmp(list->name.data, key, len) == 0) {
+					return list;
+				}
+			}
+		}
+
+		list = list->next;
+	}
+	return NULL;
+}
+
+easy_string_pair_t *easy_hash_string_del(easy_hash_string_t *table, const char *key, int len) {
+	uint64_t            n;
+	easy_string_pair_t  *list, *prev;
+	int found = 0;
+
+	n = easy_fnv_hashcode(key, len, 0);
+	n &= table->mask;
+	list = prev = table->buckets[n];
+
+	// foreach
+	while(list) {
+		if (list->name.len == len) {
+			if (table->ignore_case) {
+				if (strncasecmp(list->name.data, key, len) == 0) {
+					found = 1;
+					break;
+				}
+			} else {
+				if (strncmp(list->name.data, key, len) == 0) {
+					found = 1;
+					break;
+				}
+			}
+		}
+		prev = list;
+		list = list->next;
+	}
+	if (found) {
+		table->count --;
+		if (prev == list) {
+			//first
+			table->buckets[n] = list->next;
+		} else {
+			prev->next = list->next;
+		}
+		return list;
+	}
+
+	return NULL;
+}
+
+easy_string_pair_t *easy_hash_pair_del(easy_hash_string_t *table, easy_string_pair_t *pair) {
+	easy_string_pair_t *t = easy_hash_string_get(table, pair->name.data, pair->name.len);
+	if (t == pair) {
+		return easy_hash_string_del(table, pair->name.data, pair->name.len);
+	}
+	return NULL;
 }

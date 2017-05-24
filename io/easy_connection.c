@@ -54,7 +54,7 @@ easy_listen_t *easy_connection_add_listen(easy_io_t *eio,
 {
     easy_addr_t address;
 
-    if ((address = easy_inet_str_to_addr(host, port)).addr == 0) {
+    if ((address = easy_inet_str_to_addr(host, port)).family == 0) {
         easy_trace_log("error addr: host=%s, port=%d.\n", host, port);
         return NULL;
     }
@@ -205,7 +205,7 @@ void easy_connection_destroy(easy_connection_t *c)
             while (read(c->fd, buf, EASY_POOL_PAGE_SIZE) > 0);
         }
 
-        close(c->fd);
+        easy_safe_close(c->fd);
         c->fd = -1;
     }
 
@@ -238,7 +238,7 @@ int easy_connection_connect(easy_io_t *eio, easy_addr_t addr,
 {
     int         ret;
 
-    if (addr.addr == 0)
+    if (addr.u.addr == 0)
         return EASY_ERROR;
 
     easy_session_t *s = easy_session_create(0);
@@ -257,7 +257,7 @@ int easy_connection_connect(easy_io_t *eio, easy_addr_t addr,
 easy_connection_t *easy_connection_connect_thread(easy_io_t *eio, easy_addr_t addr,
         easy_io_handler_pt *handler, int conn_timeout, void *args, int autoconn)
 {
-    if (addr.addr == 0)
+    if (addr.u.addr == 0)
         return NULL;
 
     easy_session_t s;
@@ -275,7 +275,7 @@ int easy_connection_disconnect(easy_io_t *eio, easy_addr_t addr)
 {
     int             ret;
 
-    if (addr.addr == 0)
+    if (addr.u.addr == 0)
         return EASY_ERROR;
 
     easy_session_t *s = easy_session_create(0);
@@ -290,7 +290,7 @@ int easy_connection_disconnect(easy_io_t *eio, easy_addr_t addr)
 
 int easy_connection_disconnect_thread(easy_io_t *eio, easy_addr_t addr)
 {
-    if (addr.addr == 0)
+    if (addr.u.addr == 0)
         return EASY_ERROR;
 
     easy_session_t s;
@@ -401,7 +401,7 @@ static void easy_connection_on_accept(struct ev_loop *loop, ev_io *w, int revent
     // 为新连接创建一个easy_connection_t对象
     if ((c = easy_connection_new()) == NULL) {
         easy_error_log("easy_connection_new\n");
-        close(fd);
+        easy_safe_close(fd);
         return;
     }
 
@@ -1348,7 +1348,7 @@ static easy_connection_t *easy_connection_do_connect(easy_client_t *client)
     return c;
 error_exit:
 
-    if (fd >= 0) close(fd);
+    easy_safe_close(fd);
 
     easy_pool_destroy(c->pool);
     return NULL;
@@ -1484,7 +1484,7 @@ static void easy_connection_autoconn(easy_connection_t *c)
         if (errno == ECONNREFUSED) {
             easy_error_log("connect to '%s' failure: %s (%d)\n",
                            easy_inet_addr_to_str(&c->addr, buffer, 32), strerror(errno), errno);
-            close(fd);
+            easy_safe_close(fd);
             return;
         }
 

@@ -98,7 +98,36 @@ int main() {
 		hash_test_t *entry = (hash_test_t *)((char *)node - table->offset);
 		printf("%d(key: %llu): %s => %d\n", i, entry->list_node.key, entry->key, entry->val);
 	}
+	printf("clear table\n");
+	easy_hash_clear(table);
+	printf("dump after clearing\n");
+	easy_hash_for_each(i, node, table) {
+		hash_test_t *entry = (hash_test_t *)((char *)node - table->offset);
+		printf("%d(key: %llu): %s => %d\n", i, entry->list_node.key, entry->key, entry->val);
+	}
 	//顺序list+hash的复合元素大同小异，但需要注意的是需要独立的函数对
+	//string hash
+	{
+		easy_hash_string_t *table = easy_hash_string_create(pool, 5, 0);
+		easy_string_pair_t pair1, pair2;
+		easy_buf_string_set(&pair1.name, "test1");
+		easy_buf_string_set(&pair1.value, "value1");
+		easy_buf_string_set(&pair2.name, "test2");
+		easy_buf_string_set(&pair2.value, "value2");
+		easy_hash_string_add(table, &pair1);
+		easy_hash_string_add(table, &pair2);
+		printf("find pair1: %ld\n", easy_hash_string_get(table, "test1", strlen("test1")));
+		printf("find pair2: %ld\n", easy_hash_string_get(table, "test2", strlen("test2")));
+		printf("find pair3: %ld\n", easy_hash_string_get(table, "test3", strlen("test3")));
+		printf("table count: %d\n", table->count);
+		easy_hash_string_del(table, "test1", strlen("test1"));
+		easy_hash_pair_del(table, &pair2);
+		printf("after del pairs\n");
+		printf("find pair1: %ld\n", easy_hash_string_get(table, "test1", strlen("test1")));
+		printf("find pair2: %ld\n", easy_hash_string_get(table, "test2", strlen("test2")));
+		printf("find pair3: %ld\n", easy_hash_string_get(table, "test3", strlen("test3")));
+		printf("table count: %d\n", table->count);
+	}
 	easy_pool_destroy(pool);
 	return 0;
 }

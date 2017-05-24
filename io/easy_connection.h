@@ -19,8 +19,6 @@
 
 EASY_CPP_START
 
-#define EASY_CONNECT_ADDR           1
-#define EASY_DISCONNECT_ADDR        2
 #define EASY_MIN_INTERVAL           0.1
 
 typedef struct easy_connection_list_t {

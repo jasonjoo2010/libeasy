@@ -4,23 +4,32 @@
 #include <netdb.h>
 
 int main() {
+	//myip
+	{
+		easy_addr_t addr;
+		unsigned char *t = (unsigned char *)&addr.u.addr;
+		addr.family = AF_INET;
+		t[0] = 0x7f;
+		t[3] = 1;// 127.0.0.1
+		printf("myip: %d\n", easy_inet_myip(&addr));
+	}
+	//str to addr
+	{
+		char host[NI_MAXHOST + 6];
+		easy_addr_t addr = easy_inet_str_to_addr("localhost", 1023);
+		easy_inet_addr_to_str(&addr, host, sizeof(host) - 1);
+		printf("addr: %s\n", host);
+	}
 	//get ip addrs
 	{
-		easy_inet_addr_t addrs[64];
-		int ret = easy_inet_hostaddr(addrs, sizeof(addrs) / sizeof(easy_inet_addr_t));
+		easy_addr_t addrs[64];
+		int ret = easy_inet_hostaddr(addrs, sizeof(addrs) / sizeof(easy_addr_t), 0);
 		int i = 0;
 		printf("count: %d\n", ret);
 		for (; i < ret; i ++) {
 			char host[NI_MAXHOST];
-			int s;
-			if (addrs[i].family == AF_INET) {
-				s = getnameinfo((const struct sockaddr *)&addrs[i].addr, sizeof(addrs[i].addr), host,
-				NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-			} else {
-				s = getnameinfo((const struct sockaddr *)&addrs[i].addr6, sizeof(addrs[i].addr6), host,
-				NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-			}
-			printf("%s => %s\n", addrs[i].name, host);
+			easy_inet_addr_to_str(&addrs[i], host, sizeof(host) - 1);
+			printf("%s\n", host);
 		}
 	}
 	return 0;

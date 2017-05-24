@@ -71,75 +71,51 @@ void easy_pool_clear(easy_pool_t *pool)
 
 void easy_pool_destroy(easy_pool_t *pool)
 {
+	easy_pool_cleanup_t *t = pool->cleanup;
+	while(t) {
+		(t->handler)(t->data);
+		t = t->next;
+	}
     easy_pool_clear(pool);
     assert(pool->ref == 0);
     easy_pool_realloc(pool, 0);
 }
 
-void *easy_pool_alloc(easy_pool_t *pool, uint32_t size)
-{
-    uint8_t      *m;
-    easy_pool_t  *p;
-    int          flags = pool->flags;
+void *easy_pool_alloc_ex(easy_pool_t *pool, uint32_t size, int align) {
+	uint8_t *m;
+	easy_pool_t *p;
+	int flags = pool->flags;
 
-    if (unlikely(flags)) easy_spin_lock(&pool->tlock);
+	if (unlikely(flags))
+		easy_spin_lock(&pool->tlock);
 
-    if (size <= pool->max) {
-        p = pool->current;
+	if (size <= pool->max) {
+		p = pool->current;
 
-        do {
-            m = easy_align_ptr(p->last, sizeof(unsigned long));
+		do {
+			m = easy_align_ptr(p->last, align);
 
-            if (m + size <= p->end) {
-                p->last = m + size;
-                break;
-            }
+			if (m + size <= p->end) {
+				p->last = m + size;
+				break;
+			}
 
-            p = p->next;
-        } while (p);
+			p = p->next;
+		} while (p);
 
-        // 重新分配一块出来
-        if (p == NULL) {
-            m = (uint8_t *)easy_pool_alloc_block(pool, size);
-        }
-    } else {
-        m = (uint8_t *)easy_pool_alloc_large(pool, size);
-    }
+		// 重新分配一块出来
+		if (p == NULL) {
+			m = (uint8_t *) easy_pool_alloc_block(pool, size);
+		}
+	} else {
+		m = (uint8_t *) easy_pool_alloc_large(pool, size);
+	}
 
-    if (unlikely(flags)) easy_spin_unlock(&pool->tlock);
+	if (unlikely(flags))
+		easy_spin_unlock(&pool->tlock)
+	;
 
-    return m;
-}
-
-void *easy_pool_nalloc(easy_pool_t *pool, uint32_t size)
-{
-    uint8_t         *m;
-    easy_pool_t     *p;
-
-    if (size <= pool->max) {
-
-        p = pool->current;
-
-        do {
-            m = p->last;
-
-            if (m + size <= p->end) {
-                p->last = m + size;
-                break;
-            }
-
-            p = p->next;
-        } while (p);
-
-        // 重新分配一块出来
-        if (p == NULL) {
-            m = (uint8_t *)easy_pool_alloc_block(pool, size);
-        }
-    } else {
-        m = (uint8_t *)easy_pool_alloc_large(pool, size);
-    }
-
-    return m;
+	return m;
 }
 
 void *easy_pool_calloc(easy_pool_t *pool, uint32_t size)
@@ -215,13 +191,13 @@ static void *easy_pool_alloc_large(easy_pool_t *pool, uint32_t size)
     easy_pool_large_t  *large;
 
     size = easy_align(size + sizeof(easy_pool_large_t), EASY_POOL_ALIGNMENT);
-
     if ((large = (easy_pool_large_t *)easy_pool_realloc(NULL, size)) == NULL)
         return NULL;
 
     large->next = pool->large;
+    large->data = large + 1;
     pool->large = large;
-    return &(large->data[0]);
+    return large->data;
 }
 
 /**
@@ -242,4 +218,19 @@ char *easy_pool_strdup(easy_pool_t *pool, const char *str)
 
     memcpy(ptr, str, sz);
     return ptr;
+}
+
+easy_pool_cleanup_t *easy_pool_cleanup_new(easy_pool_t *pool, const void *data, easy_pool_cleanup_pt *handler) {
+	easy_pool_cleanup_t *cleanup = easy_pool_alloc(pool, sizeof(easy_pool_cleanup_t));
+	if (cleanup == NULL) {
+		return NULL;
+	}
+	cleanup->handler = handler;
+	cleanup->data = data;
+	return cleanup;
+}
+
+void easy_pool_cleanup_reg(easy_pool_t *pool, easy_pool_cleanup_t *cl) {
+	cl->next = pool->cleanup;
+	pool->cleanup = cl;
 }

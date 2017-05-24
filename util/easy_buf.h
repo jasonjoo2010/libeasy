@@ -21,9 +21,8 @@ EASY_CPP_START
 #define EASY_BUF_FILE        1
 #define EASY_BUF_CLOSE_FILE  3
 
-typedef struct easy_buf_t easy_buf_t;
-typedef struct easy_file_buf_t easy_file_buf_t;
-typedef struct easy_buf_string_t easy_buf_string_t;
+typedef struct easy_buf easy_buf_t;
+
 typedef void (easy_buf_cleanup_pt)(easy_buf_t *, void *);
 
 #define EASY_BUF_DEFINE             \
@@ -32,24 +31,24 @@ typedef void (easy_buf_cleanup_pt)(easy_buf_t *, void *);
     easy_buf_cleanup_pt *cleanup;   \
     void                *args;
 
-struct easy_buf_t {
+typedef struct easy_buf {
     EASY_BUF_DEFINE;
     char                *pos;
     char                *last;
     char                *end;
-};
+} easy_buf_t;
 
-struct easy_file_buf_t {
+typedef struct easy_file_buf {
     EASY_BUF_DEFINE;
     int                 fd;
     int64_t             offset;
     int64_t             count;
-};
+} easy_file_buf_t;
 
-struct easy_buf_string_t {
+typedef struct easy_buf_string {
     char        *data;
     int         len;
-};
+} easy_buf_string_t;
 
 /**
  * 创建一个新的easy_buf_t
@@ -111,13 +110,18 @@ static inline void easy_buf_string_append(easy_buf_string_t *s,
 static inline int easy_buf_len(easy_buf_t *b)
 {
     if (unlikely(b->flags & EASY_BUF_FILE))
-        return ((easy_file_buf_t *)b)->count;
+        return (int)(((easy_file_buf_t *)b)->count);
     else
-        return (b->last - b->pos);
+        return (int)(b->last - b->pos);
 }
 
-extern int easy_buf_string_copy(easy_pool_t *pool, easy_buf_string_t *d, easy_buf_string_t *s);
+extern int easy_buf_string_copy(easy_pool_t *pool, easy_buf_string_t *d, const easy_buf_string_t *s);
 extern int easy_buf_string_printf(easy_pool_t *pool, easy_buf_string_t *d, const char *fmt, ...);
+extern int easy_buf_list_len(easy_list_t *l);
+
+#define EASY_FSTR           ".*s"
+#define EASY_PSTR(a)        ((a)->len),((a)->data)
+static const easy_buf_string_t easy_string_null = {(char *)"", 0};
 
 EASY_CPP_END
 

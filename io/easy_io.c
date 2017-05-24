@@ -142,7 +142,7 @@ void easy_eio_destroy(easy_io_t *eio)
 
     // close listen
     for (l = eio->listen; l; l = l->next) {
-        close(l->fd);
+    	easy_safe_close(l->fd);
     }
 
     // destroy io_thread
