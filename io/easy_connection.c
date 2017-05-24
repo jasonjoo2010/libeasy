@@ -237,8 +237,7 @@ int easy_connection_connect(easy_io_t *eio, easy_addr_t addr,
                             easy_io_handler_pt *handler, int conn_timeout, void *args, int autoconn)
 {
     int         ret;
-
-    if (addr.u.addr == 0)
+    if (easy_inet_addr_is_zero(&addr))
         return EASY_ERROR;
 
     easy_session_t *s = easy_session_create(0);
@@ -257,7 +256,7 @@ int easy_connection_connect(easy_io_t *eio, easy_addr_t addr,
 easy_connection_t *easy_connection_connect_thread(easy_io_t *eio, easy_addr_t addr,
         easy_io_handler_pt *handler, int conn_timeout, void *args, int autoconn)
 {
-    if (addr.u.addr == 0)
+	if (easy_inet_addr_is_zero(&addr))
         return NULL;
 
     easy_session_t s;
@@ -275,7 +274,7 @@ int easy_connection_disconnect(easy_io_t *eio, easy_addr_t addr)
 {
     int             ret;
 
-    if (addr.u.addr == 0)
+    if (easy_inet_addr_is_zero(&addr))
         return EASY_ERROR;
 
     easy_session_t *s = easy_session_create(0);
@@ -290,7 +289,7 @@ int easy_connection_disconnect(easy_io_t *eio, easy_addr_t addr)
 
 int easy_connection_disconnect_thread(easy_io_t *eio, easy_addr_t addr)
 {
-    if (addr.u.addr == 0)
+	if (easy_inet_addr_is_zero(&addr))
         return EASY_ERROR;
 
     easy_session_t s;
@@ -1277,11 +1276,12 @@ static easy_message_t *easy_connection_recycle_message(easy_message_t *m)
  */
 static easy_connection_t *easy_connection_do_connect(easy_client_t *client)
 {
-    struct sockaddr         addr;
     int                     fd, v;
     easy_connection_t       *c;
     double                  t;
     char                    buffer[32];
+    struct sockaddr_in6     addr;
+    int                     addr_size = sizeof(struct sockaddr_in6);
 
     // 建立一个connection
     if ((c = easy_connection_new()) == NULL) {
@@ -1289,7 +1289,7 @@ static easy_connection_t *easy_connection_do_connect(easy_client_t *client)
         return NULL;
     }
 
-    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(client->addr.family, SOCK_STREAM, 0)) < 0) {
         easy_error_log("socket failure: %s (%d)\n", strerror(errno), errno);
         goto error_exit;
     }
@@ -1302,11 +1302,20 @@ static easy_connection_t *easy_connection_do_connect(easy_client_t *client)
     c->client = client;
 
     // 连接
-    memset(&addr, 0, sizeof(addr));
-    memcpy(&addr, &client->addr, sizeof(uint64_t));
     easy_socket_non_blocking(fd);
+    memset(&addr, 0, sizeof(addr));
+    if (client->addr.family == AF_INET) {
+    	//ipv4
+    	memcpy(&addr, &client->addr, sizeof(uint64_t));
+    	addr_size = sizeof(struct sockaddr_in);
+    } else {
+    	//ipv6
+		addr.sin6_family = client->addr.family;
+		addr.sin6_port = client->addr.port;
+		memcpy(&addr.sin6_addr, client->addr.u.addr6, sizeof(struct in6_addr));
+    }
 
-    if (connect(fd, &addr, sizeof(struct sockaddr)) < 0) {
+    if (connect(fd, &addr, addr_size) < 0) {
         if (errno != EINPROGRESS) {
             easy_error_log("connect to '%s' failure: %s (%d)\n",
                            easy_inet_addr_to_str(&c->addr, buffer, 32), strerror(errno), errno);
@@ -1463,7 +1472,8 @@ int easy_connection_request_done(easy_request_t *r)
 static void easy_connection_autoconn(easy_connection_t *c)
 {
     int                 fd;
-    struct sockaddr     addr;
+    struct sockaddr_in6 addr;
+    int                 addr_size = sizeof(addr);
     char                buffer[32];
 
     c->status = EASY_CONN_CLOSE;
@@ -1471,16 +1481,25 @@ static void easy_connection_autoconn(easy_connection_t *c)
     if (c->client == NULL)
         return;
 
-    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(c->addr.family, SOCK_STREAM, 0)) < 0) {
         easy_error_log("socket failure: %s (%d)\n", strerror(errno), errno);
         goto error_exit;
     }
 
     easy_socket_non_blocking(fd);
     memset(&addr, 0, sizeof(addr));
-    memcpy(&addr, &c->addr, sizeof(uint64_t));
+	if (c->addr.family == AF_INET) {
+		//ipv4
+		memcpy(&addr, &c->addr, sizeof(uint64_t));
+		addr_size = sizeof(struct sockaddr_in);
+	} else {
+		//ipv6
+		addr.sin6_family = c->addr.family;
+		addr.sin6_port = c->addr.port;
+		memcpy(&addr.sin6_addr, c->addr.u.addr6, sizeof(struct in6_addr));
+	}
 
-    if (connect(fd, &addr, sizeof(struct sockaddr)) < 0) {
+    if (connect(fd, &addr, addr_size) < 0) {
         if (errno == ECONNREFUSED) {
             easy_error_log("connect to '%s' failure: %s (%d)\n",
                            easy_inet_addr_to_str(&c->addr, buffer, 32), strerror(errno), errno);

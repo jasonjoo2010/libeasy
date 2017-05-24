@@ -17,7 +17,13 @@
 #include <netdb.h>
 
 EASY_CPP_START
-
+/*
+ * 检查是否空地址
+ * @return
+ * 		0 非空
+ * 		1 空
+ */
+extern int easy_inet_addr_is_zero(const easy_addr_t *addr);
 /**
  * 把sockaddr_in转成string
  */

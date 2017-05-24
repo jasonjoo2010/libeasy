@@ -77,6 +77,11 @@ easy_addr_t easy_inet_add_port(const easy_addr_t *addr, int diff) {
 	return new;
 }
 
+int easy_inet_addr_is_zero(const easy_addr_t *addr) {
+	static uint8_t zero6[16] = { 0 };
+	return (addr->family == AF_INET && addr->u.addr == 0) || (addr->family == AF_INET6 && memcmp(zero6, addr->u.addr6, sizeof(zero6)) == 0);
+}
+
 /**
  * 把sockaddr_in转成string
  */
