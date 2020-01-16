@@ -1084,7 +1084,11 @@ EV_CPP(extern "C" {
         ioctlsocket (EV_FD_TO_WIN32_HANDLE (fd), FIONBIO, &arg);
 #else
         fcntl (fd, F_SETFD, FD_CLOEXEC);
+        #ifdef O_NOATIME
         fcntl (fd, F_SETFL, O_NONBLOCK | O_NOATIME);
+        #else
+        fcntl (fd, F_SETFL, O_NONBLOCK);
+        #endif
 #endif
     }
 

@@ -1,4 +1,4 @@
-#ifndef  EATY_SUMMARY_H
+#ifndef  EASY_SUMMARY_H
 #define  EASY_SUMMARY_H
 
 #include <easy_define.h>

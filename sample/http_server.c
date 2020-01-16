@@ -219,7 +219,9 @@ static int easy_http_server_request_process(easy_request_t *r, void *args)
 
     if (p->str_query_string.len == 0) {
         easy_file_task_reset(ft, EASY_BUF_FILE);
+    #ifdef POSIX_FADV_WILLNEED
         posix_fadvise(ft->fd, ft->offset, ft->bufsize, POSIX_FADV_WILLNEED);
+    #endif
         // set sendfile to output
         fb = (easy_file_buf_t *)ft->b;
         fb->fd = ft->fd;

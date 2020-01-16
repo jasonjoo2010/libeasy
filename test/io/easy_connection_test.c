@@ -272,7 +272,7 @@ static void test_thread_2_server(int fd)
     test_thread_2_server_tp = easy_request_thread_create(4, test_thread_2_request_process, NULL);
 
     // open file
-    lnprintf(tmpn, 128, "/tmp/a_%lu_%lu\n", pthread_self(), time(NULL));
+    lnprintf(tmpn, 128, "/tmp/a_%p_%lu\n", pthread_self(), time(NULL));
     test_thread_2_server_fd = open(tmpn, O_CREAT | O_RDWR, 0600);
     i = write(test_thread_2_server_fd, test_thread_2_server_text, 8);
 

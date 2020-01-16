@@ -8,7 +8,8 @@ include_HEADERS =           \
     easy_time.h             \
     easy_array.h            \
     easy_ref.h              \
-    easy_lock.h
+    easy_lock.h             \
+    easy_semaphore.h
 
 libeasy_util_la_SOURCES =   \
     easy_buf.c              \
@@ -19,4 +20,5 @@ libeasy_util_la_SOURCES =   \
     easy_time.c             \
     easy_array.c            \
     easy_ref.c              \
-    easy_lock.c
+    easy_lock.c             \
+    easy_semaphore.c

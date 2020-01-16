@@ -1,5 +1,7 @@
 #include <pthread.h>
+#ifndef __APPLE__
 #include <sys/prctl.h>
+#endif
 #include "easy_io_struct.h"
 #include "easy_log.h"
 #include "easy_baseth_pool.h"
@@ -24,7 +26,11 @@ void *easy_baseth_on_start(void *args)
     if (eio->block_thread_signal)
         pthread_sigmask(SIG_BLOCK, &eio->block_thread_sigset, NULL);
 
+#ifdef PR_SET_NAME
     prctl(PR_SET_NAME, "easy-worker", 0, 0, 0);
+#else
+    pthread_setname_np("easy-worker");
+#endif
     ev_run(th->loop, 0);
     easy_baseth_self = NULL;
 

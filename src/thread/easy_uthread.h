@@ -3,7 +3,6 @@
 
 #include <easy_pool.h>
 #include <easy_list.h>
-#include <ucontext.h>
 
 /**
  * 创建一用户态线程

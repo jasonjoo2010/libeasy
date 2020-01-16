@@ -1,3 +1,4 @@
+AUTOMAKE_OPTIONS=subdir-objects
 include_HEADERS=                         \
 	http/easy_http_handler.h         \
 	http/http_parser.h               \

@@ -820,9 +820,11 @@ static int easy_connection_do_response(easy_message_t *m)
     c = m->c;
 
     // quickack
+    #ifdef TCP_QUICKACK
     if (EASY_IOTH_SELF->eio->tcp_nodelay) {
         easy_socket_set_tcpopt(c->fd, TCP_QUICKACK, 1);
     }
+    #endif
 
     // 处理buf
     cnt = 0;
@@ -1187,10 +1189,12 @@ int easy_connection_write_socket(easy_connection_t *c)
         return EASY_OK;
 
     // 加塞
+    #ifdef TCP_CORK
     if (EASY_IOTH_SELF->eio->tcp_cork && c->tcp_cork_flag == 0) {
         easy_socket_set_tcpopt(c->fd, TCP_CORK, 1);
         c->tcp_cork_flag = 1;
     }
+    #endif
 
     ret = (c->write)(c, &c->output);
     easy_debug_log("%s write: %d", easy_connection_str(c), ret);
@@ -1234,10 +1238,12 @@ int easy_connection_write_again(easy_connection_t *c)
         }
 
         // tcp_cork
+        #ifdef TCP_CORK
         if (EASY_IOTH_SELF->eio->tcp_cork && c->tcp_cork_flag) {
             easy_socket_set_tcpopt(c->fd, TCP_CORK, 0);
             c->tcp_cork_flag = 0;
         }
+        #endif
     }
 
     return EASY_OK;

@@ -6,8 +6,13 @@ if [ "$1" == "clean" ]; then
     find . -name 'Makefile.in' -exec rm -f {} \;
     exit;
 fi
-
-libtoolize --force
+LIBTOOLIZE=libtoolize
+OS=$(uname -s)
+if [ $OS = "Darwin" ]; then
+    # mac
+    LIBTOOLIZE=glibtoolize
+fi
+$LIBTOOLIZE --force
 aclocal
 autoconf
 automake --add-missing --force

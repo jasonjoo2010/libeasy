@@ -123,6 +123,7 @@ extern int easy_ssl_client_authenticate(easy_ssl_t *ssl, SSL *conn, const void *
         (s)->r.opacket = &((s)->data[0]);                   \
         (type*) &((s)->data[0]);}) : NULL)
 
+//多eio管理器版
 #ifdef EASY_MULTIPLICITY
 #define easy_io_create(eio, cnt)                    easy_eio_create(eio, cnt)
 #define easy_io_start(eio)                          easy_eio_start(eio)
@@ -141,6 +142,7 @@ extern int easy_ssl_client_authenticate(easy_ssl_t *ssl, SSL *conn, const void *
 #define easy_io_dispatch(eio,addr,s)                easy_client_dispatch(eio,addr,s)
 #define easy_io_send(eio,addr,s)                    easy_client_send(eio,addr,s);
 #else
+//单例版定义
 #define easy_io_create(cnt)                         easy_eio_create(&easy_io_var, cnt)
 #define easy_io_start()                             easy_eio_start(&easy_io_var)
 #define easy_io_wait()                              easy_eio_wait(&easy_io_var)

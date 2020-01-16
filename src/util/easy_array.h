@@ -3,6 +3,9 @@
 
 /**
  * 固定长度数组分配
+ * 内部维护了一个内存池，因为元素为固定长度，故在删除元素后，为了
+ * 重用已分配的内存，将其加入内部的list中，并优先进行下次分配
+ * 为了能够加入list，限制objsize最小也得是easy_list_t的大小
  */
 #include "easy_pool.h"
 #include "easy_list.h"

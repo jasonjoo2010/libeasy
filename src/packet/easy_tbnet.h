@@ -1,7 +1,6 @@
 #ifndef EASY_TBNET_H_
 #define EASY_TBNET_H_
 
-#include <byteswap.h>
 #include <easy_buf.h>
 #include <easy_io.h>
 #include <arpa/inet.h>

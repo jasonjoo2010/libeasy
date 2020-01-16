@@ -306,6 +306,7 @@ static void *easy_io_on_thread_start(void *args)
     if (eio->block_thread_signal)
         pthread_sigmask(SIG_BLOCK, &eio->block_thread_sigset, NULL);
 
+#ifndef __APPLE__
     // sched_setaffinity
     if (eio->affinity_enable) {
         static easy_atomic_t    cpuid = -1;
@@ -319,6 +320,7 @@ static void *easy_io_on_thread_start(void *args)
             easy_error_log("sched_setaffinity error: %d (%s), cpuid=%d\n", errno, strerror(errno), cpuid);
         }
     }
+#endif
 
     // 有listen
     if (eio->listen) {

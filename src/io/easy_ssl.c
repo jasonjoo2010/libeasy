@@ -877,7 +877,7 @@ int easy_ssl_servername(SSL *ssl_conn, int *ad, void *arg)
 #endif
 
 /**
- * 初始化server ctx, 并加入hash_map中
+ * 初始化server ctx, 并加入map中
  */
 static int easy_ssl_server_create(easy_ssl_t *ssl, easy_ssl_ctx_t *ss)
 {

@@ -42,16 +42,43 @@ struct easy_buf_string_t {
     int                     len;
 };
 
+/**
+ * 创建一个新的easy_buf_t
+ */
 extern easy_buf_t *easy_buf_create(easy_pool_t *pool, uint32_t size);
+/*
+ * 设置清理自定义函数
+ */
 extern void easy_buf_set_cleanup(easy_buf_t *b, easy_buf_cleanup_pt *cleanup, void *args);
+/**
+ * 设置数据到b里
+ */
 extern void easy_buf_set_data(easy_pool_t *pool, easy_buf_t *b, const void *data, uint32_t size);
+/**
+ * 把data包成easy_buf_t
+ */
 extern easy_buf_t *easy_buf_pack(easy_pool_t *pool, const void *data, uint32_t size);
+/**
+ * 创建一个easy_file_buf_t, 用于sendfile等
+ */
 extern easy_file_buf_t *easy_file_buf_create(easy_pool_t *pool);
 extern void easy_buf_destroy(easy_buf_t *b);
+/**
+ * 空间不够,分配出一块来,保留之前的空间
+ */
 extern int easy_buf_check_read_space(easy_pool_t *pool, easy_buf_t *b, uint32_t size);
+/**
+ * 空间不够,分配出一块来,不保留之前的空间
+ */
 extern easy_buf_t *easy_buf_check_write_space(easy_pool_t *pool, easy_list_t *bc, uint32_t size);
+/*
+ * 设置对sendfile类型的buf的文件关闭标记，一般为文件已打开
+ */
 extern void easy_file_buf_set_close(easy_file_buf_t *b);
 
+/*
+ * 一组buf以链表连接的操作
+ */
 extern void easy_buf_chain_clear(easy_list_t *l);
 extern void easy_buf_chain_offer(easy_list_t *l, easy_buf_t *b);
 

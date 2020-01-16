@@ -1,4 +1,6 @@
 .DS_Store
+.history/
+Makefile.in
 *.o
 libeasy.*
 io/ev/ev.3

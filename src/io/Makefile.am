@@ -1,4 +1,5 @@
 EXTRA_DIST = ev_vars.h ev_wrap.h ev_epoll.c ev_select.c
+AM_CFLAGS=-Wno-error=unused-result
 include_HEADERS=easy_connection.h       \
 	easy_io.h                       \
 	easy_file.h                     \

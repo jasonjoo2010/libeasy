@@ -4,7 +4,12 @@
 #include <easy_string.h>
 #include <sys/ioctl.h>
 #include <netinet/tcp.h>
+#ifdef __APPLE__
+#include <sys/socket.h>
+#include <sys/uio.h>
+#else
 #include <sys/sendfile.h>
+#endif
 
 static int easy_socket_chain_writev(int fd, easy_list_t *l, struct iovec *iovs, int cnt, int *again);
 static int easy_socket_sendfile(int fd, easy_file_buf_t *fb, int *again);
@@ -24,10 +29,12 @@ int easy_socket_listen(int udp, easy_addr_t *address, int *flags)
     if (udp == 0) {
         easy_socket_non_blocking(fd);
 
+#ifdef TCP_DEFER_ACCEPT
         if ((*flags & EASY_FLAGS_DEFERACCEPT)) {
             easy_socket_set_tcpopt(fd, TCP_DEFER_ACCEPT, 1);
             easy_socket_set_tcpopt(fd, TCP_SYNCNT, 2);
         }
+#endif
     }
 
     // set reuseport, reuseaddr
@@ -215,9 +222,21 @@ static int easy_socket_sendfile(int fd, easy_file_buf_t *fb, int *again)
 {
     int                     ret;
 
+#ifdef __APPLE__
+    off_t len = fb->count;
+    do {
+        ret = sendfile(fb->fd, fd, fb->offset, &len, NULL, 0);
+    } while (ret == -1 && errno == EINTR);
+    if (ret == 0 && len > 0) {
+        // succ for some bytes
+        fb->offset += ret;
+        ret = len;
+    }
+#else
     do {
         ret = sendfile(fd, fb->fd, (off_t *)&fb->offset, fb->count);
     } while(ret == -1 && errno == EINTR);
+#endif
 
     // 结果处理
     if (ret >= 0) {

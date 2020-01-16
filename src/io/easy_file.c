@@ -1,7 +1,7 @@
 #undef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 600
 #include <unistd.h>
-#include <sys/sendfile.h>
+
 #include "easy_io.h"
 #include "easy_file.h"
 #include "easy_connection.h"

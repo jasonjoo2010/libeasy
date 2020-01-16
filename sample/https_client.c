@@ -187,7 +187,7 @@ static int parse_cmd_line(int argc, char *const argv[], cmdline_param *cp)
             break;
 
         case 'N':
-            snprintf(cp->servername, 128, optarg);
+            snprintf(cp->servername, 128, "%s", optarg);
 
         case 'k':
             cp->keep_alive = 1;
@@ -245,7 +245,7 @@ static int parse_cmd_line(int argc, char *const argv[], cmdline_param *cp)
 
     int                     port = 443;
 
-    if (cp->servername != NULL) {
+    if (cp->servername[0]) {
         snprintf(cp->servername, 128, "%s", purl);
         char                    *p = strchr(cp->servername, ':');
 

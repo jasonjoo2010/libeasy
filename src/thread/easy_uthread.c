@@ -1,5 +1,10 @@
 #include "easy_atomic.h"
 #include "easy_uthread.h"
+#ifdef __APPLE__
+#define _XOPEN_SOURCE
+#include <signal.h>
+#include <ucontext.h>
+#endif
 
 /**
  * 用户态线程

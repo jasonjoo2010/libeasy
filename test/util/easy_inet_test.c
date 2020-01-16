@@ -16,12 +16,12 @@ TEST(easy_inet, addr_to_str)
     char                    buffer[64], *str;
     int                     i, cnt, size;
     const char              *ip[] = {
-        "xxx.xxx.xxx.xxx:2001",
-        "xxx.xxx.xxx.xxx",
+        "255.255.255.254:2001",
+        "255.255.255.254",
         "2001:fefe::1",
         "[2001::1]:2001",
-        "xxx.xxx.xxx.xxx:1",
-        "xxx.xxx.xxx.xxx:255"
+        "255.255.255.254:1",
+        "255.255.255.254:255"
     };
 
     cnt = sizeof(ip) / sizeof(char *);
@@ -31,7 +31,7 @@ TEST(easy_inet, addr_to_str)
         addr = easy_inet_str_to_addr(ip[i], 0);
         EXPECT_TRUE(addr.u.addr != 0);
 
-        str = easy_inet_addr_to_str(&addr, buffer, 64);
+        str = easy_inet_addr_to_str(&addr, buffer, sizeof(buffer));
 
         if (memcmp(ip[i], str, strlen(ip[i])) == 0)
             size ++;
@@ -52,9 +52,9 @@ TEST(easy_inet, str_to_addr)
     test_check_addr_t       *c, list[] = {
         {"2001:2:3:4:5:6:7:8", 0, "2001:2:3:4:5:6:7:8"},
         {"2:2:2003:2004:2005:2006:2007:2008", 12345, "[2:2:2003:2004:2005:2006:2007:2008]:12345"},
-        {"xxx.xxx.xxx.xxx", 1001, "xxx.xxx.xxx.xxx:1001"},
-        {"xxx.xxx.xxx.xxx", 1001, "xxx.xxx.xxx.xxx:1001"},
-        {"xxx.xxx.xxx.xxx", 0, "xxx.xxx.xxx.xxx"},
+        {"255.255.255.254", 1001, "255.255.255.254:1001"},
+        {"255.255.255.254", 65535, "255.255.255.254:65535"},
+        {"255.255.255.254", 0, "255.255.255.254"},
         {"2001::1", 1, "[2001::1]:1"},
         {"2001::1", 0, "2001::1"},
         {"[2001::1]", 0, "2001::1"},
@@ -84,7 +84,7 @@ TEST(easy_inet, str_to_addr)
         } else if (*(c->check) == '*' && addr.u.addr != 0) {
             success ++;
         } else {
-            str = easy_inet_addr_to_str(&addr, buffer, 64);
+            str = easy_inet_addr_to_str(&addr, buffer, sizeof(buffer));
             buffer[63] = '\0';
 
             if (str && c->check && memcmp(str, c->check, strlen(c->check)) == 0) {
@@ -106,9 +106,9 @@ TEST(easy_inet, parse_host)
     int                     cnt, i, success;
     test_check_addr_t       *c, list[] = {
         {"[]", 1001, "[::]:1001"},
-        {"xxx.xxx.xxx.xxx", 1001, "xxx.xxx.xxx.xxx:1001"},
-        {"xxx.xxx.xxx.xxx", 1001, "xxx.xxx.xxx.xxx:1001"},
-        {"xxx.xxx.xxx.xxx", 0, "xxx.xxx.xxx.xxx"},
+        {"255.255.255.254", 1001, "255.255.255.254:1001"},
+        {"localhost", 1001, "127.0.0.1:1001"},
+        {"255.255.255.254", 0, "255.255.255.254"},
         {"192.256.257.300", 1001, NULL},
         {"localhost", 1001, "127.0.0.1:1001"},
         {"localhost_xxxxxx", 1001, NULL},
@@ -125,7 +125,7 @@ TEST(easy_inet, parse_host)
         if (addr.family == 0 && c->check == NULL) {
             success ++;
         } else {
-            str = easy_inet_addr_to_str(&addr, buffer, 64);
+            str = easy_inet_addr_to_str(&addr, buffer, sizeof(buffer));
             buffer[63] = '\0';
 
             if (str && c->check && memcmp(str, c->check, strlen(c->check)) == 0) {
@@ -144,8 +144,10 @@ TEST(easy_inet, is_ipaddr)
 {
     int                     ret;
 
-    ret = easy_inet_is_ipaddr("xxx.xxx.xxx.xxx");
+    ret = easy_inet_is_ipaddr("192.1.0.1");
     EXPECT_EQ(ret, 1);
+    ret = easy_inet_is_ipaddr("xxx.xxx.xxx.xxx");
+    EXPECT_EQ(ret, 0);
     ret = easy_inet_is_ipaddr("xxx.xxx.xx.xxx");
     EXPECT_EQ(ret, 0);
     ret = easy_inet_is_ipaddr("192.1.0.x");
@@ -172,7 +174,7 @@ TEST(easy_inet, hostaddr)
 
     for(i = 0; i < size; i++) {
         addr.addr = address[i];
-        fprintf(stderr, "%s\n", easy_inet_addr_to_str(&addr, buffer, 64));
+        fprintf(stderr, "%s\n", easy_inet_addr_to_str(&addr, buffer, sizeof(buffer)));
     }
 
 #endif
@@ -183,12 +185,12 @@ TEST(easy_inet, add_port)
     easy_addr_t             addr;
     char                    buffer[32];
 
-    addr = easy_inet_str_to_addr("xxx.xxx.xxx.xxx", 255);
+    addr = easy_inet_str_to_addr("127.0.0.1", 255);
     addr = easy_inet_add_port(&addr, 3);
-    easy_inet_addr_to_str(&addr, buffer, 32);
-    EXPECT_EQ(strcmp(buffer, "xxx.xxx.xxx.xxx:258"), 0);
+    easy_inet_addr_to_str(&addr, buffer, sizeof(buffer));
+    EXPECT_EQ(strcmp(buffer, "127.0.0.1:258"), 0);
     addr = easy_inet_add_port(&addr, -4);
-    easy_inet_addr_to_str(&addr, buffer, 32);
-    EXPECT_EQ(strcmp(buffer, "xxx.xxx.xxx.xxx:254"), 0);
+    easy_inet_addr_to_str(&addr, buffer, sizeof(buffer));
+    EXPECT_EQ(strcmp(buffer, "127.0.0.1:254"), 0);
 }
 

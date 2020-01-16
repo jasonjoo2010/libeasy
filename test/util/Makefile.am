@@ -11,7 +11,8 @@ util_test_SOURCES = util_test.c \
     easy_inet_test.c            \
     easy_time_test.c            \
     easy_ref_test.c             \
-    easy_lock_test.c
+    easy_lock_test.c            \
+    easy_semaphore_test.c
 
 am__DEPENDENCIES_1=${PRESET_LDADD}
 ${PRESET_LDADD}:

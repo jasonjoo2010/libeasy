@@ -1,5 +1,4 @@
 #include <easy_io.h>
-#include <byteswap.h>
 
 /**
  * 定义 echo_packet_tbnet_t

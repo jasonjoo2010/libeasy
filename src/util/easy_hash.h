@@ -54,17 +54,44 @@ struct easy_string_pair_t {
     for(i=0; i<table->size; i++)                                \
         for(node = table->buckets[i]; node; node = node->next)
 
+/*
+ * 创建一easy_hash_t
+ * 元素的key被良好hash_code后，将均匀分配至各bucket中，碰撞后会以链表形式来存储，
+ * 所以需要根据目标要存储的元素数目，来确定合理的桶数目，桶越多越占内存，碰撞越少，效率越高
+ * @param easy_pool_t *pool
+ * @param uint32_t size
+ *                   bucket count
+ * @param int offset
+ *                   offset of node property in data-struct
+ */
 extern easy_hash_t *easy_hash_create(easy_pool_t *pool, uint32_t size, int offset);
 extern int easy_hash_add(easy_hash_t *table, uint64_t key, easy_hash_list_t *list);
 extern void easy_hash_clear(easy_hash_t *table);
 extern void *easy_hash_find(easy_hash_t *table, uint64_t key);
-void *easy_hash_find_ex(easy_hash_t *table, uint64_t key, easy_hash_cmp_pt cmp, const void *a);
+/*
+ * 自定义元素比较算法
+ * 用于同样key_code的分组自定义查找，适用同code情况下自定义规则匹配（亦即自定义了code生成算法，故意同code碰撞分组）
+ */
+extern void *easy_hash_find_ex(easy_hash_t *table, uint64_t key, easy_hash_cmp_pt cmp, const void *a);
 extern void *easy_hash_del(easy_hash_t *table, uint64_t key);
+/*
+ * 直接删除指定的node
+ */
 extern int easy_hash_del_node(easy_hash_list_t *n);
+/*
+ * 对uint64类型的key做hash_code
+ */
 extern uint64_t easy_hash_key(uint64_t key);
+/*
+ * 对指定长度的字节集合做hash_code
+ */
 extern uint64_t easy_hash_code(const void *key, int len, unsigned int seed);
 extern uint64_t easy_fnv_hashcode(const void *key, int wrdlen, unsigned int seed);
 
+
+/*
+ * 带顺序list的复合元素加入hash，会同时追加顺序list尾部
+ */
 extern int easy_hash_dlist_add(easy_hash_t *table, uint64_t key, easy_hash_list_t *hash, easy_list_t *list);
 extern void *easy_hash_dlist_del(easy_hash_t *table, uint64_t key);
 

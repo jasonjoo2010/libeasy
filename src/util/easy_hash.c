@@ -7,6 +7,11 @@ static int easy_hash_string_tolower(const char *src, int slen, char *dst, int dl
 
 /**
  * 创建一easy_hash_t
+ * @param easy_pool_t *pool
+ * @param uint32_t size
+ *                   bucket count
+ * @param int offset
+ *                   offset of node property in data-struct
  */
 easy_hash_t *easy_hash_create(easy_pool_t *pool, uint32_t size, int offset)
 {

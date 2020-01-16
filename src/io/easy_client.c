@@ -26,7 +26,7 @@ int easy_client_dispatch(easy_io_t *eio, easy_addr_t addr, easy_session_t *s)
     issend = (s->status == 0 || s->status == EASY_CONNECT_SEND);
 
     if (unlikely(ioth->eio->checkdrc == 0 && ioth->doing_request_count >= eio->queue_size && issend)) {
-        static int              lastlog = 0;
+        static time_t              lastlog = 0;
 
         if (lastlog != time(NULL)) {
             lastlog = time(NULL);

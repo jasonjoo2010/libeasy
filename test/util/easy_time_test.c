@@ -47,7 +47,7 @@ TEST(easy_time, now)
     int64_t                 s = easy_time_now();
     usleep(1);
     int64_t                 e = easy_time_now();
-    int                     t = time(NULL);
+    time_t                  t = time(NULL);
     EXPECT_TRUE(e > s);
     s /= 1000000;
     e /= 1000000;

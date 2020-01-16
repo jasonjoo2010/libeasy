@@ -73,12 +73,18 @@ easy_file_buf_t *easy_file_buf_create(easy_pool_t *pool)
     return b;
 }
 
+/*
+ * 设置对sendfile类型的buf的文件关闭标记，一般为文件已打开
+ */
 void easy_file_buf_set_close(easy_file_buf_t *b)
 {
     if ((b->flags & EASY_BUF_FILE))
         b->flags = EASY_BUF_CLOSE_FILE;
 }
 
+/*
+ * 设置清理自定义函数
+ */
 void easy_buf_set_cleanup(easy_buf_t *b, easy_buf_cleanup_pt *cleanup, void *args)
 {
     b->cleanup = cleanup;

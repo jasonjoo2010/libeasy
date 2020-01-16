@@ -51,7 +51,9 @@ static int test_thread_7_request_process(easy_request_t *r, void *args)
 
     if (p->str_query_string.len > 0 && memcmp("sendfile=y", p->str_query_string.data, 10) == 0) {
         easy_file_task_reset(ft, EASY_BUF_FILE);
+#ifndef __APPLE__
         posix_fadvise(ft->fd, ft->offset, ft->bufsize, POSIX_FADV_WILLNEED);
+#endif
         // set sendfile to output
         fb = (easy_file_buf_t *)ft->b;
         fb->fd = ft->fd;
@@ -269,7 +271,7 @@ static void test_thread_7_client(int port)
 
     memset(test_thread_7_server_text, 'A', 400);
     test_thread_7_server_text[399] = '\0';
-    lnprintf(test_thread_7_filename, 64, "/b_%lu_%lu", pthread_self(), time(NULL));
+    lnprintf(test_thread_7_filename, 64, "/b_%p_%lu", pthread_self(), time(NULL));
     lnprintf(fullname, 128, "%s%s", TEST_ROOT_DIR, test_thread_7_filename);
     fd = open(fullname, O_CREAT | O_RDWR, 0600);
     i = write(fd, test_thread_7_server_text, strlen(test_thread_7_server_text));

@@ -1,3 +1,4 @@
 noinst_LTLIBRARIES=libeasy_thread.la
 include_HEADERS=easy_uthread.h
+libeasy_thread_la_CFLAGS=-Wno-deprecated-declarations
 libeasy_thread_la_SOURCES=easy_uthread.c

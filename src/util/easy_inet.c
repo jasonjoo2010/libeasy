@@ -6,7 +6,12 @@
 #include <netdb.h>
 #include <arpa/inet.h>      // inet_addr
 #include <sys/ioctl.h>
+
+#ifdef __APPLE__
+#include <net/if.h>
+#else
 #include <linux/if.h>
+#endif
 
 /**
  * 把sockaddr_in转成string
@@ -80,12 +85,12 @@ easy_addr_t easy_inet_str_to_addr(const char *host, int port)
 /**
  * 把端口改变一下
  */
-easy_addr_t easy_inet_add_port(easy_addr_t *addr, int diff)
+easy_addr_t easy_inet_add_port(const easy_addr_t *addr, int diff)
 {
     easy_addr_t             ret;
 
     memcpy(&ret, addr, sizeof(easy_addr_t));
-    ret.port = ntohs(ntohs(addr->port) + diff);
+    ret.port = htons(ntohs(addr->port) + diff);
     return ret;
 }
 
@@ -105,6 +110,19 @@ int easy_inet_is_ipaddr(const char *host)
     }
 
     return 1;
+}
+
+int easy_inet_is_ipaddr6(const char *host) {
+	unsigned char c, *p;
+	p = (unsigned char *) host;
+
+	while ((c = (*p++)) != '\0') {
+		if ((c != ':') && !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+			return 0;
+		}
+	}
+
+	return 1;
 }
 
 /**
@@ -129,12 +147,18 @@ int easy_inet_parse_host(easy_addr_t *addr, const char *host, int port)
             family = AF_INET6;
         } else {
             // FIXME: gethostbyname会阻塞
+#ifdef __APPLE__
+            struct hostent *hp = gethostbyname(host);
+            if (hp == NULL) {
+                return EASY_ERROR;
+            }
+#else
             char                    buffer[1024];
             struct  hostent         h, *hp;
 
             if (gethostbyname_r(host, &h, buffer, 1024, &hp, &rc) || hp == NULL)
                 return EASY_ERROR;
-
+#endif
             if (hp->h_addrtype == AF_INET6) {
                 family = AF_INET6;
                 memcpy(addr->u.addr6, hp->h_addr, sizeof(addr->u.addr6));
@@ -211,7 +235,7 @@ easy_addr_t easy_inet_getpeername(int s)
 /**
  *
  */
-void easy_inet_atoe(void *a, easy_addr_t *e)
+void easy_inet_atoe(const void *a, easy_addr_t *e)
 {
     struct sockaddr_storage *addr = (struct sockaddr_storage *) a;
     memset(e, 0, sizeof(easy_addr_t));
@@ -229,7 +253,7 @@ void easy_inet_atoe(void *a, easy_addr_t *e)
     }
 }
 
-void easy_inet_etoa(easy_addr_t *e, void *a)
+void easy_inet_etoa(const easy_addr_t *e, void *a)
 {
     if (e->family == AF_INET6) {
         struct sockaddr_in6     *s = (struct sockaddr_in6 *)a;

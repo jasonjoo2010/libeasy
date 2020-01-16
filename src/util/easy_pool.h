@@ -42,14 +42,34 @@ struct easy_pool_t {
 extern easy_pool_realloc_pt easy_pool_realloc;
 extern void *easy_pool_default_realloc (void *ptr, size_t size);
 
+/*
+ * create a memory pool
+ * @param size
+ *            page size
+ */
 extern easy_pool_t *easy_pool_create(uint32_t size);
+/*
+ * clear contents of a pool (and reduce to ONE page)
+ */
 extern void easy_pool_clear(easy_pool_t *pool);
+/*
+ * destroy a pool
+ */
 extern void easy_pool_destroy(easy_pool_t *pool);
 extern void *easy_pool_alloc_ex(easy_pool_t *pool, uint32_t size, int align);
 extern void *easy_pool_calloc(easy_pool_t *pool, uint32_t size);
+/*
+ * set a user-defined allocator
+ */
 extern void easy_pool_set_allocator(easy_pool_realloc_pt alloc);
+/*
+ * pool operation need lock (when shared between threads)
+ */
 extern void easy_pool_set_lock(easy_pool_t *pool);
 
+/*
+ * make a string copy in a pool
+ */
 extern char *easy_pool_strdup(easy_pool_t *pool, const char *str);
 
 EASY_CPP_END
