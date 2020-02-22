@@ -267,6 +267,7 @@ static void * easy_uthread_start(void *p, void *p1) {
     easy_uthread_t          *t = (easy_uthread_t *)p;
     t->startfn(t->startargs);
     easy_uthread_exit(0);
+    return NULL;
 }
 
 static void easy_uthread_context_switch(coctx_t *from, coctx_t *to) {
