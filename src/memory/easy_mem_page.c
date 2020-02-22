@@ -1,5 +1,15 @@
 #include "easy_mem_page.h"
+#ifndef __APPLE__
 #include <malloc.h>
+#endif
+
+#ifdef __APPLE__
+static void *memalign(size_t alignment, size_t size) {
+    void *ptr = NULL;
+    posix_memalign(&ptr, alignment, size);
+    return ptr;
+}
+#endif
 
 static easy_mem_page_t *easy_mem_rmqueue(easy_mem_zone_t *zone, uint32_t order);
 static void easy_mem_expand(easy_mem_zone_t *zone, easy_mem_page_t *page,

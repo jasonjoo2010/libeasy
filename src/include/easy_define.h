@@ -31,7 +31,7 @@
 #include <execinfo.h>
 
 // byteswap compatible
-#if !defined(bswap_16) && defined(__APPLE__)
+#ifdef __APPLE__
 // Mac OS X / Darwin features
 #include <libkern/OSByteOrder.h>
 #define bswap_16(x) OSSwapInt16(x)

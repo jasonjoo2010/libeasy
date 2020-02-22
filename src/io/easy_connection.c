@@ -93,7 +93,7 @@ easy_listen_t *easy_connection_listen_addr(easy_io_t *eio, easy_addr_t addr, eas
 
     // 初始化
     for(i = 0; i < cnt; i++) {
-        if (l->handler->is_udp) {
+        if (l->handler && l->handler->is_udp) {
             ev_io_init(&l->read_watcher[i], easy_connection_on_udpread, fd, EV_READ | EV_CLEANUP);
         } else {
             ev_io_init(&l->read_watcher[i], easy_connection_on_accept, fd, EV_READ | EV_CLEANUP);
@@ -1511,7 +1511,7 @@ static easy_connection_t *easy_connection_do_connect(easy_client_t *client)
     }
 
     memset(&addr, 0, sizeof(addr));
-    easy_inet_etoa(&client->addr, &addr);
+    int addr_size = easy_inet_etoa(&client->addr, &addr);
 
     fd = client->ref;
     client->ref = 0;
@@ -1534,7 +1534,7 @@ static easy_connection_t *easy_connection_do_connect(easy_client_t *client)
         easy_socket_set_tcpopt(fd, TCP_NODELAY, 1);
     }
 
-    if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+    if (connect(fd, (struct sockaddr *)&addr, addr_size) < 0) {
         if (errno != EINPROGRESS) {
             easy_error_log("connect to %s failure: %s (%d)\n", easy_connection_str(c), strerror(errno), errno);
             goto error_exit;

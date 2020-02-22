@@ -150,7 +150,7 @@ void *test_mem_alloc(void *args)
 {
     unsigned char           *ptr[100], *str;
     int                     i, cnt = 0, size, idx;
-    srand(pthread_self());
+    srand((uint64_t)pthread_self());
     easy_mem_zone_t         *z = easy_mem_mgr_var.zone;
 
     // 1.

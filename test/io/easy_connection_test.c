@@ -15,19 +15,20 @@
 TEST(easy_connection, listen)
 {
     easy_listen_t           *l;
+    int port = 12345; // must greater then 1024 avoiding permission issue
 
     easy_log_level = (easy_log_level_t)0;
-    l = easy_io_add_listen(NULL, 80, NULL);
+    l = easy_io_add_listen(NULL, port, NULL);
     EXPECT_TRUE(l == NULL);
 
     easy_io_create(1);
 
-    l = easy_io_add_listen(NULL, 80, NULL);
-    EXPECT_TRUE(l == NULL);
+    l = easy_io_add_listen(NULL, port, NULL);
+    EXPECT_TRUE(l != NULL);
 
     easy_io_start();
 
-    l = easy_io_add_listen(NULL, 80, NULL);
+    l = easy_io_add_listen(NULL, port, NULL);
     EXPECT_TRUE(l == NULL);
     easy_io_stop();
     easy_io_wait();
@@ -272,7 +273,7 @@ static void test_thread_2_server(int fd)
     test_thread_2_server_tp = easy_request_thread_create(4, test_thread_2_request_process, NULL);
 
     // open file
-    lnprintf(tmpn, 128, "/tmp/a_%p_%lu\n", pthread_self(), time(NULL));
+    lnprintf(tmpn, 128, "/tmp/a_%"PRId64"u_%lu\n", (uint64_t)pthread_self(), time(NULL));
     test_thread_2_server_fd = open(tmpn, O_CREAT | O_RDWR, 0600);
     i = write(test_thread_2_server_fd, test_thread_2_server_text, 8);
 

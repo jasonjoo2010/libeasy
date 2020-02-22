@@ -1,10 +1,5 @@
 #include "easy_atomic.h"
 #include "easy_uthread.h"
-#ifdef __APPLE__
-#define _XOPEN_SOURCE
-#include <signal.h>
-#include <ucontext.h>
-#endif
 
 /**
  * 用户态线程
@@ -12,9 +7,11 @@
 
 __thread easy_uthread_control_t *easy_uthread_var = NULL;
 
+extern void coctx_swap( coctx_t *,coctx_t* ) asm("coctx_swap");
+
 static easy_uthread_t *easy_uthread_alloc(easy_uthread_start_pt *fn, void *args, int stack_size);
-static void easy_uthread_start(uint32_t y, uint32_t x);
-static void easy_uthread_context_switch(ucontext_t *from, ucontext_t *to);
+static void * easy_uthread_start(void *p, void *p1);
+static void easy_uthread_context_switch(coctx_t *from, coctx_t *to);
 
 /**
  * 需要初始化一下
@@ -26,6 +23,7 @@ void easy_uthread_init(easy_uthread_control_t *control)
         memset(easy_uthread_var, 0, sizeof(easy_uthread_control_t));
         easy_list_init(&easy_uthread_var->runqueue);
         easy_list_init(&easy_uthread_var->thread_list);
+        coctx_init(&control->context);
     }
 }
 
@@ -228,9 +226,6 @@ static easy_uthread_t *easy_uthread_alloc(easy_uthread_start_pt *fn, void *args,
     easy_uthread_t          *t;
     easy_pool_t             *pool;
     int                     size;
-    sigset_t                zero;
-    uint32_t                x, y;
-    uint64_t                z;
 
     // 创建一个pool
     size = sizeof(easy_uthread_t) + stack_size;
@@ -252,21 +247,12 @@ static easy_uthread_t *easy_uthread_alloc(easy_uthread_start_pt *fn, void *args,
 
     /* do a reasonable initialization */
     memset(&t->context, 0, sizeof(t->context));
-    sigemptyset(&zero);
-    sigprocmask(SIG_BLOCK, &zero, &t->context.uc_sigmask);
-
-    /* must initialize with current context */
-    if(getcontext(&t->context) < 0)
-        goto error_exit;
 
     /* call makecontext to do the real work. */
-    t->context.uc_stack.ss_sp = t->stk;
-    t->context.uc_stack.ss_size = t->stksize;
-    z = (unsigned long)t;
-    y = (uint32_t)z;
-    x = (uint32_t)(z >> 32);
+    t->context.ss_sp = (char *)t->stk;
+    t->context.ss_size = t->stksize;
 
-    makecontext(&t->context, (void( *)())easy_uthread_start, 2, y, x);
+    coctx_make(&t->context, easy_uthread_start, t, 0);
 
     return t;
 error_exit:
@@ -277,23 +263,13 @@ error_exit:
     return NULL;
 }
 
-static void easy_uthread_start(uint32_t y, uint32_t x)
-{
-    uint64_t                z;
-
-    z = x;
-    z <<= 32;
-    z |= y;
-    easy_uthread_t          *t = (easy_uthread_t *)(long)z;
+static void * easy_uthread_start(void *p, void *p1) {
+    easy_uthread_t          *t = (easy_uthread_t *)p;
     t->startfn(t->startargs);
     easy_uthread_exit(0);
 }
 
-static void easy_uthread_context_switch(ucontext_t *from, ucontext_t *to)
-{
-    if(swapcontext(from, to) < 0) {
-        fprintf(stderr, "swapcontext failed.\n");
-        abort();
-    }
+static void easy_uthread_context_switch(coctx_t *from, coctx_t *to) {
+    coctx_swap(from, to);
 }
 

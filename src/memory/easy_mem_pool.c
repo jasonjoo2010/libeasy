@@ -1,10 +1,22 @@
 #include <assert.h>
 #include <stdio.h>
+#ifndef __APPLE__
 #include <malloc.h>
+#endif
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdint.h>
 #include "easy_mem_pool.h"
+
+// pthread_spinlock compatible
+#ifdef __APPLE__
+
+#define pthread_spinlock_t pthread_mutex_t
+#define pthread_spin_init pthread_mutex_init
+#define pthread_spin_lock pthread_mutex_lock
+#define pthread_spin_unlock pthread_mutex_unlock
+
+#endif
 
 #if __GNUC__ >= 4
 /**
@@ -79,7 +91,16 @@ typedef struct easy_mempool_thread_info_t {
     easy_mempool_t          *pool;
 } easy_mempool_thread_info_t;
 
+#ifdef __APPLE__
+static void *memalign(size_t alignment, size_t size) {
+    void *ptr = NULL;
+    posix_memalign(&ptr, alignment, size);
+    return ptr;
+}
+#endif
+
 easy_mempool_allocator_t easy_mempool_g_allocator = {memalign, free};
+
 
 static int64_t          EASY_MEMPOOL_BUF_MAGIC_NUM = 0xabcd;
 static int64_t          EASY_MEMPOOL_BUF_FREE_FLAG = 0Xef12;
@@ -246,7 +267,11 @@ easy_mempool_t *easy_mempool_create(uint32_t size)
         ret->page_metas[ret->cur_page_pos].ref_cnt = 1;
         ret->free_num = 0;
         ret->free_list = NULL;
+#ifdef __APPLE__
+        pthread_spin_init(&(ret->free_list_lock), NULL); // actually mutex lock
+#else
         pthread_spin_init(&(ret->free_list_lock), PTHREAD_PROCESS_PRIVATE);
+#endif
     }
 
     return ret;

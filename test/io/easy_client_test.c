@@ -274,8 +274,10 @@ TEST(easy_client, send)
     packet->data = &packet->buffer[0];
     packet->len = sizeof(int);
     packet->chid = 1;
-    addr = easy_inet_str_to_addr("xxx.xxx.xxx.xxx", 22);
+    // FIXME: Please pay attention it's an internal address
+    addr = easy_inet_str_to_addr("192.168.123.3", 22);
     s->status = EASY_CONNECT_SEND;
+    s->thread_ptr = &io_handler;
     signal(SIGALRM, easy_client_send_timeout);
     alarm(3);
     easy_io_send(addr, s);

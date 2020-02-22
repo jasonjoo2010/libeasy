@@ -7,6 +7,7 @@ AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/io/easy_io.h])
 AC_PREFIX_DEFAULT(/usr)
 AC_CANONICAL_HOST
+AM_PROG_AS
 
 build_mac=no
 # Detect the target system
@@ -71,11 +72,11 @@ AC_ARG_WITH([gcov], AS_HELP_STRING([--with-gcov], [enable code coverage(default 
 ])
 MOSTLYCLEANFILES="*.gcno *.gcda" 
 DEFAULT_INCLUDES="-I`pwd`/src/include/ -I`pwd`/src/util/"
-DEFAULT_INCLUDES="$DEFAULT_INCLUDES -I`pwd`/src/thread/ -I`pwd`/src/io/ -I`pwd`/src/packet/ -I`pwd`/src/packet/http -I."
+DEFAULT_INCLUDES="$DEFAULT_INCLUDES -I`pwd`/src/thread/ -I`pwd`/src/thread/colib -I`pwd`/src/io/ -I`pwd`/src/memory/ -I`pwd`/src/packet/ -I`pwd`/src/packet/http -I."
 VERSION_MAP="`pwd`/src/libeasy.map"
 AC_SUBST(DEFAULT_INCLUDES)
 AC_SUBST(VERSION_MAP)
-PRESET_LDADD="`pwd`/src/.libs/libeasy.a"
+PRESET_LDADD="`pwd`/src/.libs/libeasy.la"
 AC_SUBST(PRESET_LDADD)
 
 AC_CONFIG_FILES([Makefile
@@ -83,14 +84,17 @@ AC_CONFIG_FILES([Makefile
                  src/include/Makefile
                  src/util/Makefile
                  src/thread/Makefile
+                 src/thread/colib/Makefile
                  src/io/Makefile
                  src/packet/Makefile
+                 src/memory/Makefile
                  test/Makefile
                  test/include/Makefile
                  test/util/Makefile
                  test/thread/Makefile
                  test/io/Makefile
                  test/packet/Makefile
+                 test/memory/Makefile
                  sample/Makefile
 		])
 AC_OUTPUT

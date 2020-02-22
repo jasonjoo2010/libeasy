@@ -3,6 +3,9 @@
 
 #include <easy_pool.h>
 #include <easy_list.h>
+#include <coctx.h>
+
+#include <signal.h>
 
 /**
  * 创建一用户态线程
@@ -29,7 +32,7 @@ struct easy_uthread_t {
     int8_t                     errcode;
     uint32_t                   stksize;
     unsigned char              *stk;
-    ucontext_t                 context;
+    coctx_t                    context;
 };
 
 struct easy_uthread_control_t {
@@ -41,7 +44,7 @@ struct easy_uthread_control_t {
     easy_list_t                runqueue;
     easy_list_t                thread_list;
     easy_uthread_t             *running;
-    ucontext_t                 context;
+    coctx_t                    context;
 };
 
 // 函数

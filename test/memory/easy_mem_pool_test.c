@@ -2,6 +2,16 @@
 #include "easy_mem_pool.h"
 #include <easy_test.h>
 
+// pthread_spinlock compatible
+#ifdef __APPLE__
+
+#define pthread_spinlock_t pthread_mutex_t
+#define pthread_spin_init pthread_mutex_init
+#define pthread_spin_lock pthread_mutex_lock
+#define pthread_spin_unlock pthread_mutex_unlock
+
+#endif
+
 /**
  * 测试 easy_mem_pool
  */
@@ -237,7 +247,11 @@ void test_thread_press(int64_t total, int64_t thread)
         list[i].head = NULL;
         list[i].tail = NULL;
         list[i].total = total;
+#ifdef __APPLE__
+        pthread_spin_init(&(list[i].lock), NULL); // Actually mutex under MacOS
+#else
         pthread_spin_init(&(list[i].lock), PTHREAD_PROCESS_PRIVATE);
+#endif
         list[i].pool = pool;
         pthread_create(&(p_pd[i]), NULL, producer, &list[i]);
     }

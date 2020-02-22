@@ -271,7 +271,7 @@ static void test_thread_7_client(int port)
 
     memset(test_thread_7_server_text, 'A', 400);
     test_thread_7_server_text[399] = '\0';
-    lnprintf(test_thread_7_filename, 64, "/b_%p_%lu", pthread_self(), time(NULL));
+    lnprintf(test_thread_7_filename, 64, "/b_%"PRId64"u_%lu", (uint64_t)pthread_self(), time(NULL));
     lnprintf(fullname, 128, "%s%s", TEST_ROOT_DIR, test_thread_7_filename);
     fd = open(fullname, O_CREAT | O_RDWR, 0600);
     i = write(fd, test_thread_7_server_text, strlen(test_thread_7_server_text));

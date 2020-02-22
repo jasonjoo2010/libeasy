@@ -97,9 +97,10 @@ int easy_semaphore_timedwait_rel(easy_semaphore_t *semaphore, int64_t ms) {
     }
 #else
     struct timespec timeout;
+    clock_gettime(CLOCK_REALTIME, &timeout);
     // overflow?
-    timeout.tv_sec = time(NULL) + (int)(ms / 1000);
-    timeout.tv_nsec = (int)(ms % 1000) * 1000000;
+    timeout.tv_sec += (int)(ms / 1000);
+    timeout.tv_nsec += (int)(ms % 1000) * 1000000;
     ret = sem_timedwait(&semaphore->sem, &timeout);
 #endif
     return ret;

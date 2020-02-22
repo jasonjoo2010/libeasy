@@ -46,10 +46,16 @@ extern easy_addr_t easy_inet_add_port(const easy_addr_t *addr, int diff);
  */
 extern int easy_inet_myip(easy_addr_t *addr);
 /*
- * sockaddr_in <=> easy_addr_t
+ * easy_addr_t => sockaddr_in/sockaddr_in6
+ * @return size of the structure
  */
-extern void easy_inet_atoe(const void *a, easy_addr_t *e);
-extern void easy_inet_etoa(const easy_addr_t *e, void *a);
+extern int easy_inet_atoe(const void *a, easy_addr_t *e);
+
+/*
+ * sockaddr_in/sockaddr_in6 => easy_addr_t
+ * @return size of the structure
+ */
+extern int easy_inet_etoa(const easy_addr_t *e, void *a);
 
 extern easy_addr_t easy_inet_getpeername(int s);
 

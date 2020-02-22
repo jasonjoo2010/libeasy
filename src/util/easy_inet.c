@@ -235,7 +235,7 @@ easy_addr_t easy_inet_getpeername(int s)
 /**
  *
  */
-void easy_inet_atoe(const void *a, easy_addr_t *e)
+int easy_inet_atoe(const void *a, easy_addr_t *e)
 {
     struct sockaddr_storage *addr = (struct sockaddr_storage *) a;
     memset(e, 0, sizeof(easy_addr_t));
@@ -245,15 +245,17 @@ void easy_inet_atoe(const void *a, easy_addr_t *e)
         e->family = AF_INET;
         e->port = s->sin_port;
         e->u.addr = s->sin_addr.s_addr;
+        return sizeof(struct sockaddr_in);
     } else {
         struct sockaddr_in6     *s = (struct sockaddr_in6 *)a;
         e->family = AF_INET6;
         e->port = s->sin6_port;
         memcpy(e->u.addr6, &s->sin6_addr, sizeof(e->u.addr6));
+        return sizeof(struct sockaddr_in6);
     }
 }
 
-void easy_inet_etoa(const easy_addr_t *e, void *a)
+int easy_inet_etoa(const easy_addr_t *e, void *a)
 {
     if (e->family == AF_INET6) {
         struct sockaddr_in6     *s = (struct sockaddr_in6 *)a;
@@ -261,12 +263,14 @@ void easy_inet_etoa(const easy_addr_t *e, void *a)
         s->sin6_family = AF_INET6;
         s->sin6_port = e->port;
         memcpy(&s->sin6_addr, e->u.addr6, sizeof(e->u.addr6));
+        return sizeof(struct sockaddr_in6);
     } else {
         struct sockaddr_in      *s = (struct sockaddr_in *)a;
         memset(s, 0, sizeof(struct sockaddr_in));
         s->sin_family = AF_INET;
         s->sin_port = e->port;
         s->sin_addr.s_addr = e->u.addr;
+        return sizeof(struct sockaddr_in);
     }
 }
 

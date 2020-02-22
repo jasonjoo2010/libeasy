@@ -54,7 +54,7 @@ void easy_log_format_default(int level, const char *file, int line, const char *
     }
 
     // print
-    len = lnprintf(buffer, 128, "%s %s:%d(tid:%p) ", time_str, file, line, pthread_self());
+    len = lnprintf(buffer, 128, "%s %s:%d(tid:%"PRId64"u) ", time_str, file, line, (uint64_t)pthread_self());
     va_list                 args;
     va_start(args, fmt);
     len += easy_vsnprintf(buffer + len, 4090 - len,  fmt, args);
