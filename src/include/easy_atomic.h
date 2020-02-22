@@ -24,11 +24,18 @@ static __inline__ void easy_atomic32_add(easy_atomic32_t *v, int i)
 }
 static __inline__ int32_t easy_atomic32_add_return(easy_atomic32_t *value, int32_t diff)
 {
+#ifndef __APPLE__
     int32_t                 old = diff;
+#endif
     __asm__ volatile (
         EASY_SMP_LOCK "xaddl %0, %1"
         :"+r" (diff), "+m" (*value) : : "memory");
+#ifdef __APPLE__
+    // Because on OSX it will not be changed if it might overflow.
+    return *value;
+#else
     return diff + old;
+#endif
 }
 static __inline__ void easy_atomic32_inc(easy_atomic32_t *v)
 {
@@ -50,12 +57,19 @@ static __inline__ void easy_atomic_add(easy_atomic_t *v, int64_t i)
 }
 static __inline__ int64_t easy_atomic_add_return(easy_atomic_t *value, int64_t i)
 {
+#ifndef __APPLE__
     int64_t                 __i = i;
+#endif
     __asm__ __volatile__(
         EASY_SMP_LOCK "xaddq %0, %1;"
         :"=r"(i)
         :"m"(*value), "0"(i));
+#ifdef __APPLE__
+    // Because on OSX it will not be changed if it might overflow.
+    return *value;
+#else
     return i + __i;
+#endif
 }
 static __inline__ int64_t easy_atomic_cmp_set(easy_atomic_t *lock, int64_t old, int64_t set)
 {

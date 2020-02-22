@@ -18,7 +18,7 @@
 
 #define TEST_ATOMIC_ADD(v2, init_value, add_value) \
     {v2 = (easy_atomic_t)(init_value); \
-        int64_t                 cv = v2 + (easy_atomic_t)add_value; \
+        int64_t                 cv = (v2 & 0xffffffffffffffff) + (add_value & 0xffffffffffffffff); \
         easy_atomic_add(&v2, (easy_atomic_t)(add_value)); \
         EXPECT_EQ(v2, cv); \
         v2 = (easy_atomic_t)(init_value); \
