@@ -1,6 +1,8 @@
 #ifndef __EASY_SEMAPHORE_H__
 #define __EASY_SEMAPHORE_H__
 
+#include <easy_define.h>
+
 #ifdef __APPLE__
 #include <dispatch/dispatch.h>
 #else
