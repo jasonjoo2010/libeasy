@@ -7,6 +7,8 @@
 #include <semaphore.h>
 #endif
 
+EASY_CPP_START
+
 typedef struct easy_semaphore_t {
 #ifdef __APPLE__
 	dispatch_semaphore_t sem;
@@ -68,5 +70,7 @@ extern int easy_semaphore_timedwait(easy_semaphore_t *semaphore, struct timespec
  * @return zero for success, -1 to set errno
  */
 extern int easy_semaphore_trywait(easy_semaphore_t *semaphore);
+
+EASY_CPP_END
 
 #endif
