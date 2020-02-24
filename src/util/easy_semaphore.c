@@ -105,3 +105,19 @@ int easy_semaphore_timedwait_rel(easy_semaphore_t *semaphore, int64_t ms) {
 #endif
     return ret;
 }
+
+int easy_semaphore_timedwait(easy_semaphore_t *semaphore, struct timespec *tm) {
+    CHECK_DESTROY(semaphore);
+    int ret = 0;
+#ifdef __APPLE__
+    if (dispatch_semaphore_wait(semaphore->sem, dispatch_walltime(tm, 0)) != 0) {
+        // timeout
+        ret = -1;
+        errno = EAGAIN;
+    }
+#else
+    ret = sem_timedwait(&semaphore->sem, tm);
+#endif
+    return ret;
+}
+

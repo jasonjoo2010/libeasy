@@ -93,6 +93,19 @@ TEST(easy_semaphore, single_zero) {
     EXPECT_EQ(ret, -1);
     EXPECT_EQ(valid_time(end - begin, 90, 200), 1);
 
+    struct timespec timeout;
+    clock_gettime(CLOCK_REALTIME, &timeout);
+    begin = now_ms();
+    timeout.tv_nsec += 300 * 1000 * 1000;
+    if (timeout.tv_nsec > 1000000000) {
+        timeout.tv_nsec %= 1000000000;
+        timeout.tv_sec ++;
+    }
+    ret = easy_semaphore_timedwait(&semaphore, &timeout);
+    end = now_ms();
+    EXPECT_EQ(ret, -1);
+    EXPECT_EQ(valid_time(end - begin, 260, 320), 1);
+
     ret = easy_semaphore_signal(&semaphore);
     EXPECT_EQ(ret, 0);
 
