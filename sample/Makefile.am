@@ -3,13 +3,19 @@ AM_CFLAGS= -I${top_srcdir}/src/include     \
         -I${top_srcdir}/src/thread         \
         -I${top_srcdir}/src/io             \
         -I${top_srcdir}/src/packet/http    \
-        -Wno-error=unused-result           \
-        -Wno-error=format-security
+        -Wno-unused-result                 \
+        -Wno-format-security
 
 EXTRA_DIST = echo_packet.h echo_packet_tbnet.h Makefile.sample http_status.init ssl.conf ca.key ca.crt
 AM_LDFLAGS=-lpthread -lm -lcrypto
+
 if !OSX
-    AM_LDFLAGS+= -lrt
+AM_LDFLAGS+= -lrt
+
+if GCC_LEGACY
+AM_LDFLAGS+= -lstdc++
+endif
+
 endif
 
 LDADD=${PRESET_LDADD}

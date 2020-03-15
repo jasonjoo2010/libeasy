@@ -102,7 +102,7 @@ static void test_thread_4_server(int fd)
     memcpy(&test_thread_4_client2_handler, &io_handler, sizeof(easy_io_handler_pt));
     test_thread_4_client2_handler.process = test_thread_4_client2_process;
 
-    port = 2011;
+    port = 12011;
 
     for(i = 0; i < 10; i++, port++) {
         if ((l = easy_io_add_listen(NULL, port, &io2_handler)) != NULL)

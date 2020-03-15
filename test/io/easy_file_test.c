@@ -168,7 +168,7 @@ static void test_thread_7_server(int fd)
     io_handler.on_connect = test_thread_7_connect;
     io_handler.on_disconnect = test_thread_7_disconnect;
 
-    port = 2011;
+    port = 12011;
 
     for(i = 0; i < 10; i++, port++) {
         if ((l = easy_io_add_listen(NULL, port, &io_handler)) != NULL)

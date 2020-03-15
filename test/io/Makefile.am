@@ -1,6 +1,11 @@
 AM_CPPFLAGS=-I${top_srcdir}/test/
 
 LDADD=${PRESET_LDADD} -lpthread -lm -lcrypto
+if !OSX
+if GCC_LEGACY
+    LDADD+= -lrt -lstdc++
+endif
+endif
 noinst_PROGRAMS = io_test
 TESTS = $(noinst_PROGRAMS)
 io_test_SOURCES = io_test.c \

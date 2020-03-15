@@ -71,7 +71,7 @@ static void test_thread_1_server(int fd)
     io_handler.on_connect = test_thread_1_connect;
     io_handler.on_disconnect = test_thread_1_disconnect;
 
-    port = 2011;
+    port = 12011;
 
     for(i = 0; i < 10; i++, port++) {
         if ((l = easy_io_add_listen(NULL, port, &io_handler)) != NULL)
@@ -262,7 +262,7 @@ static void test_thread_2_server(int fd)
     io_handler.on_connect = test_thread_2_connect;
     io_handler.on_disconnect = test_thread_2_disconnect;
 
-    port = 2011;
+    port = 12011;
 
     for(i = 0; i < 10; i++, port++) {
         if ((l = easy_io_add_listen(NULL, port, &io_handler)) != NULL)
@@ -437,7 +437,7 @@ static void test_thread_3_server(int fd)
     io_handler.on_connect = test_thread_3_connect;
     io_handler.on_disconnect = test_thread_3_disconnect;
 
-    port = 2011;
+    port = 12011;
 
     for(i = 0; i < 10; i++, port++) {
         if ((l = easy_io_add_listen(NULL, port, &io_handler)) != NULL)
@@ -623,7 +623,7 @@ static void test_thread_4_server(int fd)
     io_handler.on_connect = test_thread_4_connect;
     io_handler.on_disconnect = test_thread_4_disconnect;
 
-    port = 2011;
+    port = 12011;
 
     for(i = 0; i < 10; i++, port++) {
         if ((l = easy_io_add_listen(NULL, port, &io_handler)) != NULL)

@@ -422,7 +422,7 @@ static void test_simple_fork()
         cp = &list[i];
         easy_log_level = (easy_log_level_t)cp->port;
 
-        port = 2011;
+        port = 12011;
         eio = easy_io_create(NULL, cp->io);
         EXPECT_TRUE(eio != NULL);
 
@@ -503,7 +503,7 @@ static void test_timeout_fork()
     io_handler.decode = easy_simple_decode;
     io_handler.encode = easy_simple_encode;
     io_handler.process = test_process_server1;
-    port = 2011;
+    port = 12011;
     eio = easy_io_create(NULL, 1);
 
     for(i = 0; i < 10; i++, port ++) {

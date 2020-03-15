@@ -30,6 +30,10 @@ if test "$build_mac" = "yes"; then
     CPPFLAGS="$CPPFLAGS -I$OPENSSL_DIR/include"
 fi
 
+## gcc version
+GCC_VER_GTE48=$(echo `gcc -dumpversion | cut -f1-2 -d.` \>= 4.4 | sed -e 's/\./*100+/g' | bc )
+AM_CONDITIONAL([GCC_LEGACY], [test "$GCC_VER_GTE48" = "0"])
+
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_LN_S
