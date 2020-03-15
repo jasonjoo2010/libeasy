@@ -6,13 +6,13 @@
 .vscode/
 
 # compilation files
+libtool-e
 .libs/
 .deps/
 *.o
 *.la
 *.lo
 *.log
-*.map
 
 # autotools
 *.in
