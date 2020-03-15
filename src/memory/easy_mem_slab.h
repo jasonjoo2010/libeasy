@@ -55,17 +55,19 @@ struct easy_mem_mgr_t {
     easy_mem_zone_t         *zone;
 };
 
+extern easy_mem_mgr_t          easy_mem_mgr_var;
+
 // 内存初始化
-int easy_mem_slab_init(int start_size, int64_t max_size);
-void easy_mem_slab_destroy();
+extern int easy_mem_slab_init(int start_size, int64_t max_size);
+extern void easy_mem_slab_destroy();
 // 内存分配
-void *easy_mem_slab_realloc(void *ptr, size_t size);
+extern void *easy_mem_slab_realloc(void *ptr, size_t size);
 // 分配
-void *easy_mem_cache_alloc(easy_mem_cache_t *cache);
+extern void *easy_mem_cache_alloc(easy_mem_cache_t *cache);
 // 释放
-void easy_mem_cache_free(easy_mem_cache_t *cache, void *obj);
+extern void easy_mem_cache_free(easy_mem_cache_t *cache, void *obj);
 // 创建一下mem_cache
-easy_mem_cache_t *easy_mem_cache_create(int buffer_size);
+extern easy_mem_cache_t *easy_mem_cache_create(int buffer_size);
 
 EASY_CPP_END
 
